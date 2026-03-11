@@ -19,6 +19,15 @@ repos:
       - id: ruff
       - id: ruff-format
 
+  - repo: local
+    hooks:
+      - id: frontend-eslint
+        name: frontend eslint
+        entry: bash -lc "cd frontend && npm run lint"
+        language: system
+        pass_filenames: false
+        files: ^frontend/
+
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v4.13.9
     hooks:
