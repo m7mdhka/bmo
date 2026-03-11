@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: backend
+    container_name: bmo-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../backend:/app/backend
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: frontend
+    container_name: bmo-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ../frontend:/app/frontend
+
+# Usage (from repo root):
+#   docker compose -f docker/docker-compose.yml up --build
+
