@@ -1,0 +1,7 @@
+# Project-level Codex configuration for BMO.
+# See: https://developers.openai.com/codex/config-basic/
+
+[project]
+name = "bmo"
+description = "Local, Docker-run, Replit-like monorepo (Python backend, Next.js/React frontend)."
+

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schema.anthropic.com/claude-settings.json",
+  "version": 1,
+  "project": {
+    "name": "bmo",
+    "description": "Local, Docker-run, Replit-like monorepo (backend: Python, frontend: Next.js/React)."
+  },
+  "permissions": {
+    "tools": {
+      "filesystem": {
+        "enabled": true
+      },
+      "shell": {
+        "enabled": true
+      }
+    }
+  }
+}
+
