@@ -6,4 +6,3 @@
 - The platform is a **local, Docker-run, Replit/Lovable-like workspace** for non-technical users.
 - All git commits should follow **Conventional Commits** and be created via **Commitizen** when possible (`cz commit`).
 - Prefer clear, small, composable modules and explicit boundaries between backend, frontend, and infra.
-

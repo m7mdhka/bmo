@@ -12,4 +12,3 @@
 - Conventions:
   - Use **Conventional Commits** enforced via **Commitizen**.
   - Prefer clear separation of concerns between backend, frontend, and infra.
-
