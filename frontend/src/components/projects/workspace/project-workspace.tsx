@@ -77,10 +77,8 @@ function flattenFiles(nodes: FileNode[]) {
 
 export function ProjectWorkspace({
   projectId,
-  name,
 }: {
   projectId: string;
-  name: string;
 }) {
   const treeData = useMemo(() => buildMockTree(projectId), [projectId]);
   const byId = useMemo(() => flattenFiles(treeData), [treeData]);
@@ -157,10 +155,8 @@ export function ProjectWorkspace({
 
       <section className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <header className="flex h-10 shrink-0 items-center justify-between border-b border-border bg-background px-3">
-          <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold tracking-tight text-foreground">{name}</h1>
-          </div>
-          <p className="shrink-0 text-[10px] text-muted-foreground">Workspace · {projectId}</p>
+          <div className="min-w-0" />
+          <div className="flex items-center gap-2" />
         </header>
 
         {/* File tabs */}

@@ -22,5 +22,5 @@ export default async function ProjectWorkspacePage({
     notFound();
   }
 
-  return <ProjectWorkspace projectId={projectId} name={name} />;
+  return <ProjectWorkspace projectId={projectId} />;
 }
