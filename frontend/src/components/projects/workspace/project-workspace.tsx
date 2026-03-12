@@ -154,11 +154,6 @@ export function ProjectWorkspace({
       </aside>
 
       <section className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="flex h-10 shrink-0 items-center justify-between border-b border-border bg-background px-3">
-          <div className="min-w-0" />
-          <div className="flex items-center gap-2" />
-        </header>
-
         {/* File tabs */}
         <div className="shrink-0 border-b border-border bg-sidebar px-2">
           <div className="flex h-9 items-end gap-1 overflow-x-auto py-1">
