@@ -174,35 +174,37 @@ export function ProjectWorkspace({
           className="flex min-h-0 flex-1 flex-col"
         >
           <div className="shrink-0 border-b border-border bg-background px-2 py-1">
-            <TabsList variant="line" className="w-full justify-start rounded-none p-0">
-              {openFiles.length === 0 ? (
-                <div className="px-2 py-1 text-[10px] text-muted-foreground">No file opened</div>
-              ) : null}
-              {openFiles.map((f) => (
-                <TabsTrigger key={f.id} value={f.id} asChild>
-                  <div
-                    className={cn(
-                      "flex items-center gap-2 rounded-none border border-transparent px-2 py-1 text-xs",
-                      "data-[state=active]:border-border data-[state=active]:bg-secondary/30 data-[state=active]:text-foreground",
-                    )}
-                  >
-                    <span className="truncate">{f.title}</span>
-                    <button
-                      type="button"
-                      className="ml-1 inline-flex h-4 w-4 items-center justify-center border border-border bg-background text-muted-foreground hover:text-foreground"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        closeFile(f.id);
-                      }}
-                      aria-label={`Close ${f.title}`}
+            <div className="overflow-x-auto">
+              <TabsList variant="line" className="justify-start rounded-none p-0">
+                {openFiles.length === 0 ? (
+                  <div className="px-2 py-1 text-[10px] text-muted-foreground">No file opened</div>
+                ) : null}
+                {openFiles.map((f) => (
+                  <TabsTrigger key={f.id} value={f.id} asChild className="flex-none">
+                    <div
+                      className={cn(
+                        "flex items-center gap-2 rounded-none border border-transparent px-2 py-1 text-xs",
+                        "data-[state=active]:border-border data-[state=active]:bg-secondary/30 data-[state=active]:text-foreground",
+                      )}
                     >
-                      <X className="h-3 w-3" aria-hidden="true" />
-                    </button>
-                  </div>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+                      <span className="max-w-[12rem] truncate">{f.title}</span>
+                      <button
+                        type="button"
+                        className="ml-1 inline-flex h-4 w-4 items-center justify-center border border-border bg-background text-muted-foreground hover:text-foreground"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          closeFile(f.id);
+                        }}
+                        aria-label={`Close ${f.title}`}
+                      >
+                        <X className="h-3 w-3" aria-hidden="true" />
+                      </button>
+                    </div>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
           </div>
 
           <TabsContent value={tabsValue} className="min-h-0 flex-1">
