@@ -1,0 +1,28 @@
+# Keep build context small and safe
+.git
+**/.DS_Store
+**/.idea
+**/.vscode
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/.venv/
+**/venv/
+**/.pytest_cache/
+**/.ruff_cache/
+**/.coverage
+**/htmlcov/
+**/coverage.xml
+
+# Node / frontend (not needed for backend image)
+frontend/
+**/node_modules/
+**/.next/
+**/dist/
+**/build/
+
+# Secrets
+**/.env
+**/.env.*
+
