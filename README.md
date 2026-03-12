@@ -1,5 +1,7 @@
 ## BMO – Local Developer Workspace Platform
 
+[English](README.md) · [العربية](docs/i18n/README.ar.md)
+
 BMO is an open-source tool that lets anyone create and manage coding projects on their own computer, through a simple web interface.
 
 Instead of installing programming tools and editors manually, users just:
