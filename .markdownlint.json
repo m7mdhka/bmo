@@ -1,0 +1,13 @@
+{
+  "default": true,
+  "MD013": false,
+  "MD033": false,
+  "MD041": true,
+  "MD024": { "siblings_only": true },
+  "MD026": { "punctuation": ".,;:!?" },
+  "MD029": { "style": "one" },
+  "MD030": { "ul_single": 1, "ol_single": 1, "ul_multi": 1, "ol_multi": 1 },
+  "MD046": { "style": "fenced" },
+  "MD048": { "style": "backtick" }
+}
+

@@ -28,6 +28,12 @@ repos:
         pass_filenames: false
         files: ^frontend/
 
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.21.0
+    hooks:
+      - id: markdownlint-cli2
+        files: \.md$
+
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v4.13.9
     hooks:
