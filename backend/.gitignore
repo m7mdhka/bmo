@@ -9,6 +9,9 @@ __pycache__/
 venv/
 .python-version
 
+# Allow pinning Python version for tooling (pyenv/asdf)
+!.python-version
+
 # Test / coverage
 .pytest_cache/
 .coverage
