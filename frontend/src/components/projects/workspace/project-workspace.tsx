@@ -156,7 +156,7 @@ export function ProjectWorkspace({
       <section className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* File tabs */}
         <div className="shrink-0 border-b border-border bg-sidebar px-2 pt-1">
-          <div className="flex h-9 items-end gap-1 overflow-x-auto pb-0">
+          <div className="no-scrollbar flex h-9 items-end gap-1 overflow-x-auto pb-0">
             {openFiles.length === 0 ? (
               <div className="px-2 pb-1 text-[10px] text-muted-foreground">No file opened</div>
             ) : null}

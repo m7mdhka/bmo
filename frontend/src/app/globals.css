@@ -148,6 +148,15 @@
   background: #45475a;
 }
 
+/* Hide scrollbar but keep scrollability (used for file tabs). */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE/Edge legacy */
+  scrollbar-width: none; /* Firefox */
+}
+
 /* ─── Selection ────────────────────────────────────────────────────────────── */
 ::selection {
   background: #a6e3a133;
