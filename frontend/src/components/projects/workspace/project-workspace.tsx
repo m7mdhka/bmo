@@ -121,12 +121,12 @@ export function ProjectWorkspace({
     <div className="flex h-full flex-1 overflow-hidden">
       {/* Agent chat (left) */}
       <aside className="w-80 shrink-0 border-r border-border bg-sidebar text-sidebar-foreground">
-        <WorkspaceAgentPanel projectId={projectId} openFiles={openFiles} activeFileId={activeId} />
+        <WorkspaceAgentPanel projectId={projectId} />
       </aside>
 
       {/* Files tree (middle) */}
       <aside className="w-72 shrink-0 border-r border-border bg-sidebar text-sidebar-foreground">
-        <WorkspaceFilesPanel projectId={projectId} treeData={treeData} onOpenFile={openFile} />
+        <WorkspaceFilesPanel treeData={treeData} onOpenFile={openFile} />
       </aside>
 
       <section className="flex min-w-0 flex-1 flex-col overflow-hidden">

@@ -6,8 +6,6 @@ import { Bot, CornerDownLeft, Trash2, User } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
-import type { OpenFile } from "./workspace-types";
-
 type ChatRole = "user" | "assistant";
 
 type ChatMessage = {
@@ -31,12 +29,8 @@ function storageKey(projectId: string) {
 
 export function WorkspaceAgentPanel({
   projectId,
-  openFiles,
-  activeFileId,
 }: {
   projectId: string;
-  openFiles: OpenFile[];
-  activeFileId?: string;
 }) {
   const key = useMemo(() => storageKey(projectId), [projectId]);
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
@@ -65,9 +59,6 @@ export function WorkspaceAgentPanel({
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [messages.length]);
-
-  const activeFile = openFiles.find((f) => f.id === activeFileId) ?? openFiles[openFiles.length - 1];
-  const contextLine = activeFile ? `Active: ${activeFile.title}` : "No active file";
 
   function send() {
     const text = draft.trim();
@@ -102,7 +93,6 @@ export function WorkspaceAgentPanel({
         </button>
       </div>
 
-      <div className="px-3 pb-2 text-[10px] text-muted-foreground/70">{contextLine}</div>
       <Separator />
 
       <div ref={listRef} className="no-scrollbar min-h-0 flex-1 overflow-auto px-3 py-3">
@@ -191,4 +181,3 @@ export function WorkspaceAgentPanel({
     </div>
   );
 }
-

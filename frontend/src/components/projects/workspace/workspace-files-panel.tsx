@@ -12,11 +12,9 @@ import { cn } from "@/lib/utils";
 import type { FileNode } from "./workspace-types";
 
 export function WorkspaceFilesPanel({
-  projectId,
   treeData,
   onOpenFile,
 }: {
-  projectId: string;
   treeData: FileNode[];
   onOpenFile: (id: string) => void;
 }) {
@@ -33,12 +31,7 @@ export function WorkspaceFilesPanel({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-10 items-center justify-between px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-        <span>Files</span>
-        <span className="font-mono text-[10px] text-muted-foreground/60">{projectId}</span>
-      </div>
-
-      <div className="px-3 pb-2">
+      <div className="px-3 pt-2 pb-2">
         <div className="relative">
           <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/70" aria-hidden="true" />
           <input
@@ -147,4 +140,3 @@ function FileTreeRow({ node, style }: { node: NodeApi<FileNode>; style: React.CS
     </div>
   );
 }
-
