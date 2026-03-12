@@ -12,7 +12,7 @@ export function ProjectWorkspaceEditor({
   onChange: (next: string) => void;
 }) {
   return (
-    <div className="h-full w-full">
+    <div className="relative h-full w-full min-w-0 overflow-hidden">
       <Editor
         height="100%"
         defaultLanguage={language ?? "plaintext"}
@@ -33,4 +33,3 @@ export function ProjectWorkspaceEditor({
     </div>
   );
 }
-

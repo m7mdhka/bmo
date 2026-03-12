@@ -125,7 +125,7 @@ export function ProjectWorkspace({
         <WorkspaceAgentPanel projectId={projectId} />
       </aside>
 
-      <ResizablePanelGroup orientation="horizontal" className="min-w-0 flex-1">
+      <ResizablePanelGroup orientation="horizontal" className="h-full min-w-0 flex-1 overflow-hidden">
         <ResizablePanel
           defaultSize={28}
           minSize={18}
