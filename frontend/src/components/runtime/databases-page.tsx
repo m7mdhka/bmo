@@ -3,8 +3,6 @@
 import { useMemo, useState } from "react";
 import {
   Cable,
-  Database,
-  RefreshCw,
   Trash2,
 } from "lucide-react";
 
@@ -14,32 +12,38 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AppPageShell } from "@/components/layout/app-page-shell";
 
 import type { ConnStatus, DbConn } from "@/components/runtime/databases/types";
-import { createDefaultDetails } from "@/components/runtime/databases/defaults";
-import { engineIcon } from "@/components/runtime/databases/icons";
-import { engineSummary } from "@/components/runtime/databases/summary";
-import { ConnectionDetailsRows } from "@/components/runtime/databases/details-rows";
 import { DetailRow } from "@/components/runtime/databases/detail-row";
-import { AddConnectionButton } from "@/components/runtime/databases/add-connection-dialog";
+import {
+  AddConnectionButton,
+  ConnectFromDockerButton,
+  EditConnectionButton,
+} from "@/components/runtime/databases/add-connection-dialog";
 import { LastCheckRow } from "@/components/runtime/databases/last-check-row";
+import {
+  ENGINE_REGISTRY,
+  withEngineDefinition,
+} from "@/components/runtime/databases/registry";
 
 const MOCK: DbConn[] = [
   {
     id: "pg",
     name: "Local Postgres",
-    engine: "Postgres",
-    details: createDefaultDetails("Postgres"),
+    details: ENGINE_REGISTRY.Postgres.createDefaultDetails(),
     status: "connected",
     lastChecked: "just now",
   },
   {
     id: "redis",
     name: "Cache",
-    engine: "Redis",
-    details: createDefaultDetails("Redis"),
+    details: ENGINE_REGISTRY.Redis.createDefaultDetails(),
     status: "disconnected",
     lastChecked: "2h ago",
   },
 ];
+
+function norm(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
 
 function statusClass(status: ConnStatus) {
   switch (status) {
@@ -58,9 +62,13 @@ export function DatabasesPage() {
   const [selectedId, setSelectedId] = useState(items[0]?.id ?? "");
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = norm(query.trim());
     if (!q) return items;
-    return items.filter((i) => i.name.toLowerCase().includes(q) || i.engine.toLowerCase().includes(q));
+    return items.filter((i) => {
+      const summary = withEngineDefinition(i.details, (def, details) => def.summary(details));
+      const hay = norm([i.name, i.details.engine, summary].join(" "));
+      return hay.includes(q);
+    });
   }, [items, query]);
 
   const selected = items.find((i) => i.id === selectedId) ?? null;
@@ -72,20 +80,11 @@ export function DatabasesPage() {
     setSelectedId(remaining[0]?.id ?? "");
   }
 
-  function simulateCheck(id: string) {
+  function markChecked(id: string) {
     setItems((prev) =>
       prev.map((c) =>
         c.id === id
-          ? {
-              ...c,
-              lastChecked: "just now",
-              status:
-                c.status === "connected"
-                  ? "connected"
-                  : c.status === "disconnected"
-                    ? "connected"
-                    : "disconnected",
-            }
+          ? { ...c, lastChecked: new Date().toLocaleString() }
           : c,
       ),
     );
@@ -95,9 +94,14 @@ export function DatabasesPage() {
     <AppPageShell
       eyebrow="runtime"
       title="Connected Databases"
-      description="Define connection targets for your projects. Status checks are local and best-effort."
-      icon={Database}
-      actions={<AddConnectionButton onAdd={(c) => setItems((p) => [c, ...p])} />}
+      description="Define connection targets for your projects."
+      iconName="Database"
+      actions={
+        <div className="flex items-center gap-2">
+          <AddConnectionButton onAdd={(c) => setItems((p) => [c, ...p])} />
+          <ConnectFromDockerButton onAdd={(c) => setItems((p) => [c, ...p])} />
+        </div>
+      }
     >
       <div className="grid flex-1 gap-3 lg:grid-cols-[340px_1fr]">
         <Card className="border border-border bg-card">
@@ -112,26 +116,17 @@ export function DatabasesPage() {
                   className="w-full bg-transparent text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
                 />
               </div>
-              <Button
-                variant="outline"
-                size="xs"
-                disabled={!selected}
-                onClick={() => selected && simulateCheck(selected.id)}
-                title={!selected ? "Select a connection first" : "Re-check status"}
-              >
-                <RefreshCw className="h-3 w-3" />
-                Check
-              </Button>
             </div>
-            <p className="mt-1 text-[10px] text-muted-foreground/70">
-              Stored locally. Project wiring (compose/env injection) is coming next.
-            </p>
           </CardHeader>
 
           <CardContent className="space-y-1">
             {filtered.map((c) => {
               const isActive = c.id === selectedId;
-              const DbIcon = engineIcon(c.engine);
+              const { def, summary } = withEngineDefinition(c.details, (def, details) => ({
+                def,
+                summary: def.summary(details),
+              }));
+              const DbIcon = def.Icon;
               return (
                 <button
                   key={c.id}
@@ -150,7 +145,7 @@ export function DatabasesPage() {
                       <span className="truncate">{c.name}</span>
                     </p>
                     <p className="mt-0.5 truncate text-[10px] text-muted-foreground/70">
-                      {c.engine} · {engineSummary(c)}
+                      {def.label} · {summary}
                     </p>
                   </div>
                   <span className="flex shrink-0 items-center gap-2">
@@ -184,14 +179,25 @@ export function DatabasesPage() {
               </div>
             ) : (
               <>
+                {(() => {
+                  const def = withEngineDefinition(selected.details, (def) => def);
+                  return (
                 <div className="grid gap-2 sm:grid-cols-2">
                   <DetailRow label="Name" value={selected.name} mono />
-                  <DetailRow label="Engine" value={selected.engine} />
-                  <ConnectionDetailsRows conn={selected} />
-                  <LastCheckRow value={selected.lastChecked} onTest={() => simulateCheck(selected.id)} />
+                  <DetailRow label="Engine" value={def.label} />
+                  {withEngineDefinition(selected.details, (def, details) => def.DetailsRows(details))}
+                  <LastCheckRow value={selected.lastChecked} onTest={() => markChecked(selected.id)} />
                 </div>
+                  );
+                })()}
 
                 <div className="flex flex-wrap items-center gap-2 border border-border bg-secondary/30 p-3">
+                  <EditConnectionButton
+                    conn={selected}
+                    onUpdate={(next) =>
+                      setItems((prev) => prev.map((c) => (c.id === next.id ? next : c)))
+                    }
+                  />
                   <Button variant="outline" size="xs" disabled title="Attach to project (coming soon)">
                     <Cable className="h-3 w-3" />
                     Attach to project

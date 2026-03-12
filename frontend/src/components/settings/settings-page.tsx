@@ -3,17 +3,16 @@
 import { useState } from "react";
 import {
   Bot,
-  Check,
   FolderOpen,
   Gauge,
   Layers,
-  Settings,
   TerminalSquare,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { AppPageShell } from "@/components/layout/app-page-shell";
+import { ToggleSwitch } from "@/components/ui/toggle-switch";
 
 type ToggleRowProps = {
   label: string;
@@ -33,21 +32,7 @@ function ToggleRow({ label, description, checked, onChange }: ToggleRowProps) {
         <p className="font-semibold text-foreground">{label}</p>
         <p className="mt-0.5 text-[11px] text-muted-foreground">{description}</p>
       </div>
-      <span
-        className={cn(
-          "flex h-4 w-7 items-center border border-border bg-background transition-colors",
-          checked && "border-primary bg-primary/20",
-        )}
-      >
-        <span
-          className={cn(
-            "flex h-3.5 w-3.5 items-center justify-center bg-card text-[9px] transition-transform",
-            checked ? "translate-x-3 text-primary" : "translate-x-0 text-muted-foreground",
-          )}
-        >
-          {checked && <Check className="h-2.5 w-2.5" aria-hidden />}
-        </span>
-      </span>
+      <ToggleSwitch checked={checked} onCheckedChange={onChange} />
     </button>
   );
 }
@@ -69,7 +54,7 @@ export function SettingsPage() {
       eyebrow="settings"
       title="Preferences"
       description="Settings apply to this local BMO instance only."
-      icon={Settings}
+      iconName="Settings"
       footer={
         <div className="flex items-center justify-between border-t border-border pt-3 text-[10px] text-muted-foreground/60">
           <span>Changes are saved to this machine only.</span>

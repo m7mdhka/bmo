@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import {
-  BrainCircuit,
   Check,
   ExternalLink,
   KeyRound,
@@ -102,7 +101,7 @@ export function LlmProvidersPage() {
       eyebrow="ai"
       title="LLM Providers"
       description="Register providers and choose a default model source for agents and tools."
-      icon={BrainCircuit}
+      iconName="BrainCircuit"
       actions={
         <div className="flex items-center gap-2">
           <Button variant="outline" size="xs" disabled title="Import config (coming soon)">

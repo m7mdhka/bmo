@@ -1,10 +1,8 @@
-"use client";
-
 import { ProjectCard, type Project } from "@/components/projects/project-card";
 import { StatsBar } from "@/components/projects/stats-bar";
 import { AppPageShell } from "@/components/layout/app-page-shell";
 import Link from "next/link";
-import { FolderKanban, Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const mockProjects: Project[] = [
@@ -42,7 +40,7 @@ export default function ProjectsPage() {
     <AppPageShell
       eyebrow={`~/workspace · ${mockProjects.length} project${mockProjects.length !== 1 ? "s" : ""}`}
       title="Projects"
-      icon={FolderKanban}
+      iconName="FolderKanban"
       actions={
         <>
           <div className="relative hidden sm:block">
@@ -60,11 +58,6 @@ export default function ProjectsPage() {
             </Link>
           </Button>
         </>
-      }
-      footer={
-        <p className="text-[10px] text-muted-foreground/40">
-          Projects are stored locally. Nothing leaves your machine.
-        </p>
       }
     >
       <StatsBar />

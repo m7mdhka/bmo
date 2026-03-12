@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Box, Globe2, Users, Search, ExternalLink } from "lucide-react";
+import { Globe2, Users, Search, ExternalLink } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { AppPageShell } from "@/components/layout/app-page-shell";
@@ -118,7 +118,7 @@ export function TemplatesPage() {
       eyebrow="templates"
       title="Starter templates"
       description="Pick from official and community templates. All run locally inside BMO workspaces."
-      icon={Box}
+      iconName="Box"
       actions={
         <div className="relative">
           <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
