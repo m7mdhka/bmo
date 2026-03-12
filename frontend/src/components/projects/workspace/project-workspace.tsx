@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { NodeApi } from "react-arborist";
 import { Tree } from "react-arborist";
 import { AutoSizer } from "react-virtualized-auto-sizer";
@@ -88,6 +88,19 @@ export function ProjectWorkspace({
   ]);
   const [activeId, setActiveId] = useState(openFiles[0]?.id ?? "");
 
+  const tabsStripRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    // Avoid "already scrolled" feeling when switching workspaces or after HMR.
+    tabsStripRef.current?.scrollTo({ left: 0 });
+  }, [projectId]);
+
+  useEffect(() => {
+    if (!activeId) return;
+    const el = tabsStripRef.current?.querySelector<HTMLElement>(`[data-tab-id="${activeId}"]`);
+    el?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [activeId]);
+
   function openFile(id: string) {
     const n = byId.get(id);
     if (!n || n.type !== "file") return;
@@ -156,7 +169,10 @@ export function ProjectWorkspace({
       <section className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* File tabs */}
         <div className="shrink-0 border-b border-border bg-sidebar px-2 pt-1">
-          <div className="no-scrollbar flex h-9 items-end gap-1 overflow-x-auto pb-0">
+          <div
+            ref={tabsStripRef}
+            className="no-scrollbar flex h-9 items-end gap-1 overflow-x-auto overflow-y-hidden pb-0"
+          >
             {openFiles.length === 0 ? (
               <div className="px-2 pb-1 text-[10px] text-muted-foreground">No file opened</div>
             ) : null}
@@ -165,6 +181,7 @@ export function ProjectWorkspace({
               return (
                 <div
                   key={f.id}
+                  data-tab-id={f.id}
                   onClick={() => setActiveId(f.id)}
                   className={cn(
                     "group relative -mb-px flex h-8 flex-none items-center gap-2 border px-2 text-xs",
