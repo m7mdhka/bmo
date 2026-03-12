@@ -62,7 +62,7 @@ export function AppSidebar() {
       {/* Footer */}
       <div className="border-t border-sidebar-border px-3 py-3">
         <p className="font-mono text-[10px] text-muted-foreground/50">
-          BMO v0.1.0 · local
+          BMO v0.1.0
         </p>
       </div>
     </aside>

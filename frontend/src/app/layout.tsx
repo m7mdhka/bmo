@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BMO – Local Developer Workspace",
+  title: "BMO – Developer Workspace",
   description:
     "BMO is a local, Docker-run workspace that lets you create and manage projects from your browser.",
 };
