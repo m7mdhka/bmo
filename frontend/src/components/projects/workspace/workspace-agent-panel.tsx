@@ -193,7 +193,7 @@ export function WorkspaceAgentPanel({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-10 items-center justify-between px-3">
+      <div className="flex h-10 items-center justify-between border-b border-sidebar-border px-3">
         <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
           Agent
         </div>
@@ -216,8 +216,6 @@ export function WorkspaceAgentPanel({
           />
         </div>
       </div>
-
-      <Separator />
 
       <div ref={listRef} className="no-scrollbar min-h-0 flex-1 overflow-auto px-3 py-3">
         {mode === "history" ? (

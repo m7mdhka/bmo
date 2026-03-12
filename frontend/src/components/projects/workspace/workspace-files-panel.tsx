@@ -6,7 +6,6 @@ import { Tree } from "react-arborist";
 import { AutoSizer } from "react-virtualized-auto-sizer";
 import { ChevronRight, File, Folder, FolderOpen, Search, X } from "lucide-react";
 
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 import type { FileNode } from "./workspace-types";
@@ -31,15 +30,16 @@ export function WorkspaceFilesPanel({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="px-3 pt-2 pb-2">
-        <div className="relative">
+      {/* Top bar (aligned with Agent + Editor) */}
+      <div className="flex h-10 items-center px-3">
+        <div className="relative w-full">
           <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/70" aria-hidden="true" />
           <input
             value={fileQuery}
             onChange={(e) => setFileQuery(e.target.value)}
             placeholder="Search files"
             className={cn(
-              "h-8 w-full border border-sidebar-border bg-background/40 pl-7 pr-8 text-xs text-foreground",
+              "h-7 w-full border border-sidebar-border bg-background/40 pl-7 pr-8 text-xs text-foreground",
               "placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring/30",
             )}
           />
@@ -56,9 +56,7 @@ export function WorkspaceFilesPanel({
         </div>
       </div>
 
-      <Separator />
-
-      <div className="min-h-0 flex-1 overflow-hidden py-2">
+      <div className="min-h-0 flex-1 overflow-hidden pb-2">
         <AutoSizer
           renderProp={({ width, height }) => {
             if (!width || !height) return null;

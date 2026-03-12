@@ -15,9 +15,12 @@ export function ResizableHandle({
   return (
     <Separator
       className={cn(
-        "relative flex h-full w-2 items-stretch justify-center bg-transparent",
-        "after:absolute after:inset-y-0 after:left-1/2 after:w-px after:-translate-x-1/2 after:bg-border",
-        "hover:after:bg-ring/50 data-[panel-resize-handle-state=drag]:after:bg-ring",
+        // Render a single 1px divider line, but keep a larger hit target.
+        "relative flex h-full w-px items-stretch justify-center bg-transparent",
+        "before:absolute before:inset-y-0 before:-inset-x-2 before:content-['']",
+        "after:absolute after:inset-y-0 after:left-0 after:w-px after:bg-border",
+        "data-[separator=hover]:after:bg-ring/40 data-[separator=active]:after:bg-ring",
+        "cursor-col-resize",
         className,
       )}
       {...props}

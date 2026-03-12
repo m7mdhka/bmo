@@ -120,99 +120,139 @@ export function ProjectWorkspace({
 
   return (
     <div className="flex h-full flex-1 overflow-hidden">
-      {/* Agent chat (left) */}
-      <aside className="w-80 shrink-0 border-r border-border bg-sidebar text-sidebar-foreground">
-        <WorkspaceAgentPanel projectId={projectId} />
-      </aside>
-
+      {/* Outer split: Agent | Main */}
       <ResizablePanelGroup orientation="horizontal" className="h-full min-w-0 flex-1 overflow-hidden">
         <ResizablePanel
-          defaultSize={28}
-          minSize={18}
-          maxSize={45}
-          className="min-w-0 border-r border-border bg-sidebar text-sidebar-foreground"
+          id="agent"
+          defaultSize="26%"
+          minSize="280px"
+          maxSize="520px"
+          className="min-w-0 bg-sidebar text-sidebar-foreground"
           style={{ overflow: "hidden" }}
         >
-          <WorkspaceFilesPanel treeData={treeData} onOpenFile={openFile} />
+          <WorkspaceAgentPanel projectId={projectId} />
         </ResizablePanel>
 
         <ResizableHandle />
 
-        <ResizablePanel defaultSize={72} minSize={35} className="min-w-0 bg-background" style={{ overflow: "hidden" }}>
-          <section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
-            {/* File tabs */}
-            <div className="shrink-0 border-b border-border bg-sidebar px-2 pt-1">
-              <div
-                ref={tabsStripRef}
-                className="no-scrollbar flex h-9 items-end gap-1 overflow-x-auto overflow-y-hidden pb-0"
-              >
-                {openFiles.length === 0 ? (
-                  <div className="px-2 pb-1 text-[10px] text-muted-foreground">No file opened</div>
-                ) : null}
-                {openFiles.map((f) => {
-                  const isActive = f.id === activeId;
-                  return (
-                    <div
-                      key={f.id}
-                      data-tab-id={f.id}
-                      onClick={() => setActiveId(f.id)}
-                      className={cn(
-                        "group relative -mb-px flex h-8 flex-none items-center gap-2 border px-2 text-xs",
-                        "max-w-[14rem] rounded-none",
-                        isActive
-                          ? "z-10 border-border border-b-background bg-background text-foreground"
-                          : "border-transparent bg-transparent text-muted-foreground hover:border-sidebar-border hover:bg-secondary/40 hover:text-foreground",
-                      )}
-                      role="tab"
-                      aria-selected={isActive}
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          setActiveId(f.id);
-                        }
-                      }}
-                    >
-                      <span className="truncate">{f.title}</span>
-                      <button
-                        type="button"
-                        className={cn(
-                          "ml-1 inline-flex h-4 w-4 items-center justify-center border border-transparent",
-                          "text-muted-foreground hover:border-border hover:bg-background hover:text-foreground",
-                        )}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          closeFile(f.id);
-                        }}
-                        aria-label={`Close ${f.title}`}
-                      >
-                        <X className="h-3 w-3" aria-hidden="true" />
-                      </button>
-                    </div>
-                  );
-                })}
+        <ResizablePanel
+          id="main"
+          defaultSize="74%"
+          minSize="520px"
+          className="min-w-0 bg-background"
+          style={{ overflow: "hidden" }}
+        >
+          <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
+            {/* Shared header for Files + Editor (aligned with Agent header row) */}
+            <div className="flex h-10 items-center justify-between border-b border-sidebar-border bg-sidebar px-3">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+                Workspace
               </div>
+              <div className="text-[10px] text-muted-foreground/60">Local</div>
             </div>
 
-            {/* Editor */}
-            <div className="min-h-0 flex-1 overflow-hidden">
-              {active ? (
-                <MonacoEditor
-                  key={active.id}
-                  language={active.language}
-                  value={active.content}
-                  onChange={(next) => {
-                    setOpenFiles((prev) => prev.map((f) => (f.id === active.id ? { ...f, content: next } : f)));
-                  }}
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                  Select a file to start editing.
-                </div>
-              )}
+            {/* Inner split: Files | Editor */}
+            <div className="min-h-0 flex-1">
+              <ResizablePanelGroup orientation="horizontal" className="h-full min-w-0 flex-1 overflow-hidden">
+                <ResizablePanel
+                  id="files"
+                  defaultSize="28%"
+                  minSize="240px"
+                  maxSize="35%"
+                  className="min-w-0 bg-sidebar text-sidebar-foreground"
+                  style={{ overflow: "hidden" }}
+                >
+                  <WorkspaceFilesPanel treeData={treeData} onOpenFile={openFile} />
+                </ResizablePanel>
+
+                <ResizableHandle />
+
+                <ResizablePanel
+                  id="editor"
+                  defaultSize="72%"
+                  minSize="320px"
+                  maxSize="85%"
+                  className="min-w-0 bg-background"
+                  style={{ overflow: "hidden" }}
+                >
+                  <section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
+                    {/* File tabs */}
+                    <div className="shrink-0 flex h-10 items-end border-b border-sidebar-border bg-sidebar px-2">
+                      <div
+                        ref={tabsStripRef}
+                        className="no-scrollbar flex h-9 items-end gap-1 overflow-x-auto overflow-y-hidden pb-0"
+                      >
+                        {openFiles.length === 0 ? (
+                          <div className="px-2 pb-1 text-[10px] text-muted-foreground">No file opened</div>
+                        ) : null}
+                        {openFiles.map((f) => {
+                          const isActive = f.id === activeId;
+                          return (
+                            <div
+                              key={f.id}
+                              data-tab-id={f.id}
+                              onClick={() => setActiveId(f.id)}
+                              className={cn(
+                                "group relative -mb-px flex h-8 flex-none items-center gap-2 border px-2 text-xs",
+                                "max-w-[14rem] rounded-none",
+                                isActive
+                                  ? "z-10 border-border border-b-background bg-background text-foreground"
+                                  : "border-transparent bg-transparent text-muted-foreground hover:border-sidebar-border hover:bg-secondary/40 hover:text-foreground",
+                              )}
+                              role="tab"
+                              aria-selected={isActive}
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  setActiveId(f.id);
+                                }
+                              }}
+                            >
+                              <span className="truncate">{f.title}</span>
+                              <button
+                                type="button"
+                                className={cn(
+                                  "ml-1 inline-flex h-4 w-4 items-center justify-center border border-transparent",
+                                  "text-muted-foreground hover:border-border hover:bg-background hover:text-foreground",
+                                )}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  closeFile(f.id);
+                                }}
+                                aria-label={`Close ${f.title}`}
+                              >
+                                <X className="h-3 w-3" aria-hidden="true" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Editor */}
+                    <div className="min-h-0 flex-1 overflow-hidden">
+                      {active ? (
+                        <MonacoEditor
+                          key={active.id}
+                          language={active.language}
+                          value={active.content}
+                          onChange={(next) => {
+                            setOpenFiles((prev) => prev.map((f) => (f.id === active.id ? { ...f, content: next } : f)));
+                          }}
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+                          Select a file to start editing.
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                </ResizablePanel>
+              </ResizablePanelGroup>
             </div>
-          </section>
+          </div>
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>
