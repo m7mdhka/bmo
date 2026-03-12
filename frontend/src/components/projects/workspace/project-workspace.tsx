@@ -8,7 +8,6 @@ import { AutoSizer } from "react-virtualized-auto-sizer";
 import { File, Folder, X } from "lucide-react";
 
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 type FileNode = {
@@ -121,7 +120,6 @@ export function ProjectWorkspace({
     });
   }
 
-  const tabsValue = activeId || "__none__";
   const active = openFiles.find((f) => f.id === activeId) ?? openFiles[0];
 
   return (
@@ -165,65 +163,74 @@ export function ProjectWorkspace({
           <p className="shrink-0 text-[10px] text-muted-foreground">Workspace · {projectId}</p>
         </header>
 
-        <Tabs
-          value={tabsValue}
-          onValueChange={(v) => {
-            if (v === "__none__") return;
-            setActiveId(v);
-          }}
-          className="flex min-h-0 flex-1 flex-col"
-        >
-          <div className="shrink-0 border-b border-border bg-background px-2 py-1">
-            <div className="overflow-x-auto">
-              <TabsList variant="line" className="justify-start rounded-none p-0">
-                {openFiles.length === 0 ? (
-                  <div className="px-2 py-1 text-[10px] text-muted-foreground">No file opened</div>
-                ) : null}
-                {openFiles.map((f) => (
-                  <TabsTrigger key={f.id} value={f.id} asChild className="flex-none">
-                    <div
-                      className={cn(
-                        "flex items-center gap-2 rounded-none border border-transparent px-2 py-1 text-xs",
-                        "data-[state=active]:border-border data-[state=active]:bg-secondary/30 data-[state=active]:text-foreground",
-                      )}
-                    >
-                      <span className="max-w-[12rem] truncate">{f.title}</span>
-                      <button
-                        type="button"
-                        className="ml-1 inline-flex h-4 w-4 items-center justify-center border border-border bg-background text-muted-foreground hover:text-foreground"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          closeFile(f.id);
-                        }}
-                        aria-label={`Close ${f.title}`}
-                      >
-                        <X className="h-3 w-3" aria-hidden="true" />
-                      </button>
-                    </div>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
+        {/* File tabs */}
+        <div className="shrink-0 border-b border-border bg-sidebar px-2">
+          <div className="flex h-9 items-end gap-1 overflow-x-auto py-1">
+            {openFiles.length === 0 ? (
+              <div className="px-2 py-1 text-[10px] text-muted-foreground">No file opened</div>
+            ) : null}
+            {openFiles.map((f) => {
+              const isActive = f.id === activeId;
+              return (
+                <div
+                  key={f.id}
+                  onClick={() => setActiveId(f.id)}
+                  className={cn(
+                    "group relative flex flex-none items-center gap-2 border px-2 py-1 text-xs",
+                    "max-w-[14rem] rounded-none",
+                    isActive
+                      ? "z-10 border-border bg-background text-foreground"
+                      : "border-transparent bg-transparent text-muted-foreground hover:border-sidebar-border hover:bg-secondary/40 hover:text-foreground",
+                  )}
+                  role="tab"
+                  aria-selected={isActive}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActiveId(f.id);
+                    }
+                  }}
+                >
+                  <span className="truncate">{f.title}</span>
+                  <button
+                    type="button"
+                    className={cn(
+                      "ml-1 inline-flex h-4 w-4 items-center justify-center border border-transparent",
+                      "text-muted-foreground hover:border-border hover:bg-background hover:text-foreground",
+                    )}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      closeFile(f.id);
+                    }}
+                    aria-label={`Close ${f.title}`}
+                  >
+                    <X className="h-3 w-3" aria-hidden="true" />
+                  </button>
+                </div>
+              );
+            })}
           </div>
+        </div>
 
-          <TabsContent value={tabsValue} className="min-h-0 flex-1">
-            {active ? (
-              <MonacoEditor
-                key={active.id}
-                language={active.language}
-                value={active.content}
-                onChange={(next) => {
-                  setOpenFiles((prev) => prev.map((f) => (f.id === active.id ? { ...f, content: next } : f)));
-                }}
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                Select a file to start editing.
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+        {/* Editor */}
+        <div className="min-h-0 flex-1">
+          {active ? (
+            <MonacoEditor
+              key={active.id}
+              language={active.language}
+              value={active.content}
+              onChange={(next) => {
+                setOpenFiles((prev) => prev.map((f) => (f.id === active.id ? { ...f, content: next } : f)));
+              }}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+              Select a file to start editing.
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );
