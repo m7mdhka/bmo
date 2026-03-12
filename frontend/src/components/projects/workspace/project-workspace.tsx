@@ -7,7 +7,8 @@ import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import type { FileNode, OpenFile } from "./workspace-types";
-import { WorkspaceLeftRail } from "./workspace-left-rail";
+import { WorkspaceAgentPanel } from "./workspace-agent-panel";
+import { WorkspaceFilesPanel } from "./workspace-files-panel";
 
 const MonacoEditor = dynamic(() => import("./project-workspace-editor").then((m) => m.ProjectWorkspaceEditor), {
   ssr: false,
@@ -118,13 +119,15 @@ export function ProjectWorkspace({
 
   return (
     <div className="flex h-full flex-1 overflow-hidden">
-      <WorkspaceLeftRail
-        projectId={projectId}
-        treeData={treeData}
-        onOpenFile={openFile}
-        openFiles={openFiles}
-        activeFileId={activeId}
-      />
+      {/* Agent chat (left) */}
+      <aside className="w-80 shrink-0 border-r border-border bg-sidebar text-sidebar-foreground">
+        <WorkspaceAgentPanel projectId={projectId} openFiles={openFiles} activeFileId={activeId} />
+      </aside>
+
+      {/* Files tree (middle) */}
+      <aside className="w-72 shrink-0 border-r border-border bg-sidebar text-sidebar-foreground">
+        <WorkspaceFilesPanel projectId={projectId} treeData={treeData} onOpenFile={openFile} />
+      </aside>
 
       <section className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* File tabs */}
