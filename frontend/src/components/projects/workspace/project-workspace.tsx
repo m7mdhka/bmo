@@ -155,10 +155,10 @@ export function ProjectWorkspace({
 
       <section className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* File tabs */}
-        <div className="shrink-0 border-b border-border bg-sidebar px-2">
-          <div className="flex h-9 items-end gap-1 overflow-x-auto py-1">
+        <div className="shrink-0 border-b border-border bg-sidebar px-2 pt-1">
+          <div className="flex h-9 items-end gap-1 overflow-x-auto pb-0">
             {openFiles.length === 0 ? (
-              <div className="px-2 py-1 text-[10px] text-muted-foreground">No file opened</div>
+              <div className="px-2 pb-1 text-[10px] text-muted-foreground">No file opened</div>
             ) : null}
             {openFiles.map((f) => {
               const isActive = f.id === activeId;
@@ -167,10 +167,10 @@ export function ProjectWorkspace({
                   key={f.id}
                   onClick={() => setActiveId(f.id)}
                   className={cn(
-                    "group relative flex flex-none items-center gap-2 border px-2 py-1 text-xs",
+                    "group relative -mb-px flex h-8 flex-none items-center gap-2 border px-2 text-xs",
                     "max-w-[14rem] rounded-none",
                     isActive
-                      ? "z-10 border-border bg-background text-foreground"
+                      ? "z-10 border-border border-b-background bg-background text-foreground"
                       : "border-transparent bg-transparent text-muted-foreground hover:border-sidebar-border hover:bg-secondary/40 hover:text-foreground",
                   )}
                   role="tab"
