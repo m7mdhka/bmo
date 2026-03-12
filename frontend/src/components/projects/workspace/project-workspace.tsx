@@ -130,7 +130,7 @@ export function ProjectWorkspace({
           defaultSize={28}
           minSize={18}
           maxSize={45}
-          className="min-w-[14rem] border-r border-border bg-sidebar text-sidebar-foreground"
+          className="min-w-0 border-r border-border bg-sidebar text-sidebar-foreground"
           style={{ overflow: "hidden" }}
         >
           <WorkspaceFilesPanel treeData={treeData} onOpenFile={openFile} />
