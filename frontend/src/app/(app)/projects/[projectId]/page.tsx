@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 type ProjectWorkspacePageProps = {
-  params: { projectId: string };
+  params: Promise<{ projectId: string }>;
 };
 
 // Placeholder: later this will fetch real project/workspace data.
@@ -13,69 +12,53 @@ const mockProjectNames: Record<string, string> = {
   "landing-page": "Landing Page",
 };
 
-export default function ProjectWorkspacePage({
+export default async function ProjectWorkspacePage({
   params,
 }: ProjectWorkspacePageProps) {
-  const name = mockProjectNames[params.projectId];
+  const { projectId } = await params;
+  const name = mockProjectNames[projectId];
 
   if (!name) {
     notFound();
   }
 
   return (
-    <div className="flex h-full flex-1 flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
-          {name}
-        </h1>
-        <p className="text-xs text-muted-foreground">
-          Workspace · {params.projectId}
-        </p>
-      </div>
+    <div className="flex h-full flex-1 overflow-hidden">
+      {/* File tree (left) */}
+      <aside className="w-72 shrink-0 border-r border-border bg-sidebar text-sidebar-foreground">
+        <div className="flex h-10 items-center justify-between px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+          <span>Files</span>
+          <span className="font-mono text-[10px] text-muted-foreground/60">
+            {projectId}
+          </span>
+        </div>
+        <Separator />
+        <div className="h-[calc(100%-2.5rem)] overflow-auto px-3 py-3 text-xs text-muted-foreground">
+          <p>File tree placeholder. Later this will show project files.</p>
+        </div>
+      </aside>
 
-      <Separator />
+      {/* IDE (right) */}
+      <section className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        {/* Header only above IDE */}
+        <header className="flex h-10 shrink-0 items-center justify-between border-b border-border bg-background px-3">
+          <div className="min-w-0">
+            <h1 className="truncate text-sm font-semibold tracking-tight text-foreground">
+              {name}
+            </h1>
+          </div>
+          <p className="shrink-0 text-[10px] text-muted-foreground">
+            Workspace · {projectId}
+          </p>
+        </header>
 
-      <div className="grid flex-1 gap-3 md:grid-cols-[minmax(0,0.25fr)_minmax(0,0.5fr)_minmax(0,0.25fr)]">
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle className="text-xs font-semibold uppercase tracking-[0.15em]">
-              Files
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 text-xs text-muted-foreground">
-            <p>File tree placeholder. Later this will show project files.</p>
-          </CardContent>
-        </Card>
-
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle className="text-xs font-semibold uppercase tracking-[0.15em]">
-              Editor
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 text-xs text-muted-foreground">
-            <p>
-              Editor placeholder. A real code editor (e.g. Monaco/CodeMirror)
-              will be mounted here.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle className="text-xs font-semibold uppercase tracking-[0.15em]">
-              Console
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 text-xs text-muted-foreground">
-            <p>
-              Logs / terminal placeholder. Later this will show process output
-              for the current project.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+        <div className="flex-1 overflow-auto p-3 text-xs text-muted-foreground">
+          <p>
+            IDE placeholder. A real code editor (e.g. Monaco/CodeMirror) will be
+            mounted here.
+          </p>
+        </div>
+      </section>
     </div>
   );
 }
-
