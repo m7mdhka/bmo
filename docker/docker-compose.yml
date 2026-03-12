@@ -4,8 +4,7 @@ services:
   backend:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
-      target: backend
+      dockerfile: backend/docker/Dockerfile
     container_name: bmo-backend
     ports:
       - "8000:8000"
@@ -15,8 +14,7 @@ services:
   frontend:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
-      target: frontend
+      dockerfile: frontend/docker/Dockerfile
     container_name: bmo-frontend
     ports:
       - "3000:3000"
