@@ -131,13 +131,14 @@ export function ProjectWorkspace({
           minSize={18}
           maxSize={45}
           className="min-w-[14rem] border-r border-border bg-sidebar text-sidebar-foreground"
+          style={{ overflow: "hidden" }}
         >
           <WorkspaceFilesPanel treeData={treeData} onOpenFile={openFile} />
         </ResizablePanel>
 
         <ResizableHandle />
 
-        <ResizablePanel defaultSize={72} minSize={35} className="min-w-0 bg-background">
+        <ResizablePanel defaultSize={72} minSize={35} className="min-w-0 bg-background" style={{ overflow: "hidden" }}>
           <section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
             {/* File tabs */}
             <div className="shrink-0 border-b border-border bg-sidebar px-2 pt-1">
@@ -195,7 +196,7 @@ export function ProjectWorkspace({
             </div>
 
             {/* Editor */}
-            <div className="min-h-0 flex-1">
+            <div className="min-h-0 flex-1 overflow-hidden">
               {active ? (
                 <MonacoEditor
                   key={active.id}
