@@ -1,26 +1,155 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular,
+    Menlo, Monaco, Consolas, "Courier New", monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  /* Sharp corners everywhere — coding platform aesthetic */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ─── Default (light mode fallback — app always renders dark) ─────────────── */
+:root {
+  --background: #1e1e2e;
+  --foreground: #cdd6f4;
+  --card: #181825;
+  --card-foreground: #cdd6f4;
+  --popover: #181825;
+  --popover-foreground: #cdd6f4;
+  --primary: #a6e3a1; /* BMO green */
+  --primary-foreground: #1e1e2e;
+  --secondary: #313244;
+  --secondary-foreground: #cdd6f4;
+  --muted: #313244;
+  --muted-foreground: #6c7086;
+  --accent: #89dceb; /* BMO cyan */
+  --accent-foreground: #1e1e2e;
+  --destructive: #f38ba8;
+  --border: #313244;
+  --input: #181825;
+  --ring: #a6e3a1;
+  --chart-1: #a6e3a1;
+  --chart-2: #89dceb;
+  --chart-3: #cba6f7;
+  --chart-4: #f9e2af;
+  --chart-5: #fab387;
+  --radius: 0;
+  --sidebar: #11111b;
+  --sidebar-foreground: #cdd6f4;
+  --sidebar-primary: #a6e3a1;
+  --sidebar-primary-foreground: #1e1e2e;
+  --sidebar-accent: #89dceb;
+  --sidebar-accent-foreground: #1e1e2e;
+  --sidebar-border: #313244;
+  --sidebar-ring: #a6e3a1;
+}
+
+/* ─── Dark mode (default) — Catppuccin Mocha inspired + BMO accents ─────── */
+.dark {
+  --background: #1e1e2e; /* Mocha base */
+  --foreground: #cdd6f4; /* Mocha text */
+  --card: #181825; /* Mocha mantle */
+  --card-foreground: #cdd6f4;
+  --popover: #181825;
+  --popover-foreground: #cdd6f4;
+  --primary: #a6e3a1; /* BMO teal-green */
+  --primary-foreground: #1e1e2e;
+  --secondary: #313244; /* Mocha surface0 */
+  --secondary-foreground: #cdd6f4;
+  --muted: #313244;
+  --muted-foreground: #6c7086; /* Mocha overlay0 */
+  --accent: #89dceb; /* BMO screen-blue */
+  --accent-foreground: #1e1e2e;
+  --destructive: #f38ba8; /* Mocha red */
+  --border: #313244;
+  --input: #181825;
+  --ring: #a6e3a1;
+  --chart-1: #a6e3a1;
+  --chart-2: #89dceb;
+  --chart-3: #cba6f7;
+  --chart-4: #f9e2af;
+  --chart-5: #fab387;
+  --sidebar: #11111b; /* Mocha crust */
+  --sidebar-foreground: #cdd6f4;
+  --sidebar-primary: #a6e3a1;
+  --sidebar-primary-foreground: #1e1e2e;
+  --sidebar-accent: #313244;
+  --sidebar-accent-foreground: #cdd6f4;
+  --sidebar-border: #313244;
+  --sidebar-ring: #a6e3a1;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background font-mono text-foreground antialiased;
+  }
+  html {
+    @apply font-mono;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ─── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #313244;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #45475a;
+}
+
+/* ─── Selection ────────────────────────────────────────────────────────────── */
+::selection {
+  background: #a6e3a133;
+  color: #cdd6f4;
 }
