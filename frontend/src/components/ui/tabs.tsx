@@ -31,6 +31,7 @@ const tabsListVariants = cva(
       variant: {
         default: "bg-muted",
         line: "gap-1 bg-transparent",
+        workspace: "gap-1 bg-sidebar border-b border-sidebar-border px-2 data-[orientation=horizontal]:h-10",
       },
     },
     defaultVariants: {

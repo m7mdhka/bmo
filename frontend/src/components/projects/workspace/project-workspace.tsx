@@ -15,6 +15,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { WorkspaceTabsRoot, WorkspaceTabsList, WorkspaceTab } from "./workspace-tabs";
+import { WorkspaceHeader, WorkspaceHeaderIconButton } from "./workspace-header";
+
 import type { FileNode, OpenFile } from "./workspace-types";
 import { WorkspaceAgentPanel } from "./workspace-agent-panel";
 import { WorkspaceFilesPanel } from "./workspace-files-panel";
@@ -211,86 +214,71 @@ export function ProjectWorkspace({
         >
           <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
             {/* Feature tabs (aligned with Agent header row) */}
-            <div className="flex h-10 items-end justify-between border-b border-sidebar-border bg-sidebar px-2">
-              <div className="no-scrollbar flex h-9 items-end gap-1 overflow-x-auto overflow-y-hidden pb-0">
-                {features.open.map((id) => {
-                  const isActive = id === features.active;
-                  const canClose = features.open.length > 1;
-                  return (
-                    <div
-                      key={id}
-                      onClick={() => dispatchFeatures({ type: "activate", id })}
-                      className={cn(
-                        "group relative -mb-px flex h-8 flex-none items-center gap-2 border px-2 text-xs",
-                        "rounded-none",
-                        isActive
-                          ? "z-10 border-sidebar-border border-b-[color:var(--sidebar)] bg-sidebar text-foreground"
-                          : "border-transparent bg-transparent text-muted-foreground hover:border-sidebar-border hover:bg-secondary/40 hover:text-foreground",
-                      )}
-                      role="tab"
-                      aria-selected={isActive}
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          dispatchFeatures({ type: "activate", id });
-                        }
-                      }}
-                    >
-                      <span className="truncate">{FEATURE_LABEL[id]}</span>
-                      {canClose ? (
-                        <button
-                          type="button"
-                          className={cn(
-                            "ml-1 inline-flex h-4 w-4 items-center justify-center border border-transparent",
-                            "text-muted-foreground hover:border-sidebar-border hover:bg-background/40 hover:text-foreground",
-                          )}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            closeFeature(id);
-                          }}
-                          aria-label={`Close ${FEATURE_LABEL[id]}`}
-                          title={`Close ${FEATURE_LABEL[id]}`}
-                        >
-                          <X className="h-3 w-3" aria-hidden="true" />
-                        </button>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
+            <WorkspaceTabsRoot
+              value={features.active}
+              onValueChange={(value) => dispatchFeatures({ type: "activate", id: value as FeatureId })}
+            >
+              <WorkspaceHeader className="h-10 items-end px-2">
+                <WorkspaceTabsList>
+                  {features.open.map((id) => {
+                    const canClose = features.open.length > 1;
+                    return (
+                      <WorkspaceTab key={id} value={id}>
+                        {FEATURE_LABEL[id]}
+                        {canClose ? (
+                          <button
+                            type="button"
+                            className={cn(
+                              "ml-1 inline-flex h-4 w-4 items-center justify-center border border-transparent",
+                              "text-muted-foreground hover:border-sidebar-border hover:bg-background/40 hover:text-foreground",
+                            )}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              closeFeature(id);
+                            }}
+                            aria-label={`Close ${FEATURE_LABEL[id]}`}
+                            title={`Close ${FEATURE_LABEL[id]}`}
+                          >
+                            <X className="h-3 w-3" aria-hidden="true" />
+                          </button>
+                        ) : null}
+                      </WorkspaceTab>
+                    );
+                  })}
+                </WorkspaceTabsList>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className={cn(
-                      "mb-1 inline-flex h-7 w-7 items-center justify-center border border-transparent",
-                      "text-muted-foreground hover:border-sidebar-border hover:bg-secondary/40 hover:text-foreground",
-                    )}
-                    aria-label="Options"
-                    title="Options"
-                  >
-                    <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Features</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {(Object.keys(FEATURE_LABEL) as FeatureId[]).map((id) => (
-                    <DropdownMenuCheckboxItem
-                      key={id}
-                      checked={features.open.includes(id)}
-                      disabled={features.open.length === 1 && features.open.includes(id)}
-                      onCheckedChange={(v) => toggleFeature(id, Boolean(v))}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className={cn(
+                        "inline-flex h-7 w-7 items-center justify-center border",
+                        "border-transparent text-muted-foreground hover:border-sidebar-border hover:bg-secondary/40 hover:text-foreground",
+                      )}
+                      aria-label="Options"
+                      title="Options"
                     >
-                      {FEATURE_LABEL[id]}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                      <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Features</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {(Object.keys(FEATURE_LABEL) as FeatureId[]).map((id) => (
+                      <DropdownMenuCheckboxItem
+                        key={id}
+                        checked={features.open.includes(id)}
+                        disabled={features.open.length === 1 && features.open.includes(id)}
+                        onCheckedChange={(v) => toggleFeature(id, Boolean(v))}
+                      >
+                        {FEATURE_LABEL[id]}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </WorkspaceHeader>
+            </WorkspaceTabsRoot>
 
             {/* Inner split: Files | Editor */}
             <div className="min-h-0 flex-1">
@@ -321,59 +309,35 @@ export function ProjectWorkspace({
                       <ResizablePanel id="editorTop" defaultSize="72%" minSize="240px" maxSize="90%" style={{ overflow: "hidden" }}>
                         <section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
                           {/* File tabs */}
-                          <div className="shrink-0 flex h-10 items-end border-b border-sidebar-border bg-sidebar px-2">
-                            <div
-                              ref={tabsStripRef}
-                              className="no-scrollbar flex h-9 items-end gap-1 overflow-x-auto overflow-y-hidden pb-0"
-                            >
-                              {openFiles.length === 0 ? (
-                                <div className="px-2 pb-1 text-[10px] text-muted-foreground">No file opened</div>
-                              ) : null}
-                              {openFiles.map((f) => {
-                                const isActive = f.id === activeId;
-                                return (
-                                  <div
+                          <WorkspaceTabsRoot value={activeId} onValueChange={(value) => setActiveId(value)}>
+                            <div className="shrink-0 flex h-10 items-end border-b border-sidebar-border bg-sidebar px-2">
+                              <WorkspaceTabsList ref={tabsStripRef}>
+                                {openFiles.length === 0 ? (
+                                  <div className="px-2 pb-1 text-[10px] text-muted-foreground">No file opened</div>
+                                ) : null}
+                                {openFiles.map((f) => (
+                                  <WorkspaceTab
                                     key={f.id}
+                                    value={f.id}
                                     data-tab-id={f.id}
-                                    onClick={() => setActiveId(f.id)}
-                                    className={cn(
-                                      "group relative -mb-px flex h-8 flex-none items-center gap-2 border px-2 text-xs",
-                                      "max-w-[14rem] rounded-none",
-                                      isActive
-                                        ? "z-10 border-sidebar-border border-b-background bg-background text-foreground"
-                                        : "border-transparent bg-transparent text-muted-foreground hover:border-sidebar-border hover:bg-secondary/40 hover:text-foreground",
-                                    )}
-                                    role="tab"
-                                    aria-selected={isActive}
-                                    tabIndex={0}
-                                    onKeyDown={(e) => {
-                                      if (e.key === "Enter" || e.key === " ") {
-                                        e.preventDefault();
-                                        setActiveId(f.id);
-                                      }
-                                    }}
+                                    closeButton={
+                                      <X
+                                        className="h-3 w-3"
+                                        aria-hidden="true"
+                                        onClick={(e: React.MouseEvent<SVGSVGElement>) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          closeFile(f.id);
+                                        }}
+                                      />
+                                    }
                                   >
-                                    <span className="truncate">{f.title}</span>
-                                    <button
-                                      type="button"
-                                      className={cn(
-                                        "ml-1 inline-flex h-4 w-4 items-center justify-center border border-transparent",
-                                        "text-muted-foreground hover:border-sidebar-border hover:bg-background hover:text-foreground",
-                                      )}
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        closeFile(f.id);
-                                      }}
-                                      aria-label={`Close ${f.title}`}
-                                    >
-                                      <X className="h-3 w-3" aria-hidden="true" />
-                                    </button>
-                                  </div>
-                                );
-                              })}
+                                    {f.title}
+                                  </WorkspaceTab>
+                                ))}
+                              </WorkspaceTabsList>
                             </div>
-                          </div>
+                          </WorkspaceTabsRoot>
 
                           {/* Editor */}
                           <div className="min-h-0 flex-1 overflow-hidden">

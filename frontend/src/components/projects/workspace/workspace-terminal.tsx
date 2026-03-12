@@ -5,7 +5,8 @@ import { Trash2 } from "lucide-react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 
-import { cn } from "@/lib/utils";
+import { WorkspaceTabsRoot, WorkspaceTabsList, WorkspaceTab } from "./workspace-tabs";
+import { WorkspaceHeader, WorkspaceHeaderIconButton } from "./workspace-header";
 
 function prompt(projectId: string) {
   return `bmo:${projectId}$ `;
@@ -109,30 +110,25 @@ export function WorkspaceTerminal({ projectId }: { projectId: string }) {
 
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-      <div className="flex h-10 items-end justify-between border-b border-sidebar-border bg-sidebar px-2">
-        <div className="flex h-9 items-end gap-1">
-          <TabButton active={tab === "terminal"} onClick={() => setTab("terminal")} label="Terminal" />
-          <TabButton active={tab === "output"} onClick={() => setTab("output")} label="Output" />
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            const term = termRef.current;
-            if (!term) return;
-            term.clear();
-            term.writeln("Terminal cleared.");
-            term.write(p);
-          }}
-          className={cn(
-            "mb-1 inline-flex h-7 w-7 items-center justify-center border border-transparent",
-            "text-muted-foreground hover:border-sidebar-border hover:bg-secondary/40 hover:text-foreground",
-          )}
-          aria-label="Clear terminal"
-          title="Clear terminal"
-        >
-          <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-        </button>
-      </div>
+      <WorkspaceTabsRoot value={tab} onValueChange={(value) => setTab(value as "terminal" | "output")}>
+        <WorkspaceHeader className="h-10 items-end px-2">
+          <WorkspaceTabsList>
+            <WorkspaceTab value="terminal">Terminal</WorkspaceTab>
+            <WorkspaceTab value="output">Output</WorkspaceTab>
+          </WorkspaceTabsList>
+          <WorkspaceHeaderIconButton
+            label="Clear terminal"
+            onClick={() => {
+              const term = termRef.current;
+              if (!term) return;
+              term.clear();
+              term.writeln("Terminal cleared.");
+              term.write(p);
+            }}
+            icon={<Trash2 className="h-3.5 w-3.5" aria-hidden="true" />}
+          />
+        </WorkspaceHeader>
+      </WorkspaceTabsRoot>
 
       <div ref={shellRef} className="min-h-0 flex-1 overflow-hidden p-2">
         {tab === "terminal" ? (
@@ -146,23 +142,5 @@ export function WorkspaceTerminal({ projectId }: { projectId: string }) {
         )}
       </div>
     </div>
-  );
-}
-
-function TabButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "relative -mb-px flex h-8 items-center border px-2 text-xs",
-        active
-          ? "z-10 border-sidebar-border border-b-[color:var(--sidebar)] bg-sidebar text-foreground"
-          : "border-transparent bg-transparent text-muted-foreground hover:border-sidebar-border hover:bg-secondary/40 hover:text-foreground",
-      )}
-      aria-pressed={active}
-    >
-      {label}
-    </button>
   );
 }

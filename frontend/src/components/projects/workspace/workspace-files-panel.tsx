@@ -7,8 +7,8 @@ import { AutoSizer } from "react-virtualized-auto-sizer";
 import { ChevronRight, File, Folder, FolderOpen, Search, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-
 import type { FileNode } from "./workspace-types";
+import { WorkspaceHeader } from "./workspace-header";
 
 export function WorkspaceFilesPanel({
   treeData,
@@ -31,7 +31,7 @@ export function WorkspaceFilesPanel({
   return (
     <div className="flex h-full flex-col">
       {/* Top bar (aligned with Agent + Editor) */}
-      <div className="flex h-10 items-center px-3">
+      <WorkspaceHeader className="items-center">
         <div className="relative w-full">
           <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/70" aria-hidden="true" />
           <input
@@ -54,7 +54,7 @@ export function WorkspaceFilesPanel({
             </button>
           ) : null}
         </div>
-      </div>
+      </WorkspaceHeader>
 
       <div className="min-h-0 flex-1 overflow-hidden pb-2">
         <AutoSizer

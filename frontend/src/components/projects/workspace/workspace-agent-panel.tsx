@@ -5,6 +5,7 @@ import { Bot, CornerDownLeft, History, MessageSquarePlus, Trash2, User } from "l
 
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { WorkspaceHeader, WorkspaceHeaderIconButton, WorkspaceHeaderTitle } from "./workspace-header";
 
 type ChatRole = "user" | "assistant";
 
@@ -193,29 +194,27 @@ export function WorkspaceAgentPanel({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-10 items-center justify-between border-b border-sidebar-border px-3">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-          Agent
-        </div>
+      <WorkspaceHeader>
+        <WorkspaceHeaderTitle>Agent</WorkspaceHeaderTitle>
         <div className="flex items-center gap-1">
-          <IconButton
+          <WorkspaceHeaderIconButton
             label="Delete thread"
             onClick={deleteActiveThread}
             icon={<Trash2 className="h-3.5 w-3.5" aria-hidden="true" />}
           />
-          <IconButton
+          <WorkspaceHeaderIconButton
             label="New chat"
             onClick={newChat}
             icon={<MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />}
           />
-          <IconButton
+          <WorkspaceHeaderIconButton
             label={mode === "history" ? "Back to chat" : "History"}
             onClick={() => setMode((m) => (m === "history" ? "chat" : "history"))}
             active={mode === "history"}
             icon={<History className="h-3.5 w-3.5" aria-hidden="true" />}
           />
         </div>
-      </div>
+      </WorkspaceHeader>
 
       <div ref={listRef} className="no-scrollbar min-h-0 flex-1 overflow-auto px-3 py-3">
         {mode === "history" ? (
@@ -357,34 +356,5 @@ export function WorkspaceAgentPanel({
         </>
       ) : null}
     </div>
-  );
-}
-
-function IconButton({
-  label,
-  onClick,
-  icon,
-  active,
-}: {
-  label: string;
-  onClick: () => void;
-  icon: React.ReactNode;
-  active?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "inline-flex h-7 w-7 items-center justify-center border",
-        active
-          ? "border-primary/40 bg-primary/10 text-primary"
-          : "border-transparent text-muted-foreground hover:border-sidebar-border hover:bg-secondary/40 hover:text-foreground",
-      )}
-      aria-label={label}
-      title={label}
-    >
-      {icon}
-    </button>
   );
 }
