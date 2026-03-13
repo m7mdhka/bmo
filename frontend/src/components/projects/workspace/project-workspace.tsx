@@ -132,6 +132,7 @@ export function ProjectWorkspace({
     { id: "file-readme", title: "README.md", language: "markdown", content: byId.get("file-readme")?.content ?? "" },
   ]);
   const [activeId, setActiveId] = useState(openFiles[0]?.id ?? "");
+  const [draggingTabId, setDraggingTabId] = useState<string | null>(null);
 
   const [features, dispatchFeatures] = useReducer(featureTabsReducer, {
     open: ["IDE"],
@@ -177,6 +178,20 @@ export function ProjectWorkspace({
         if (cur !== id) return cur;
         return next[next.length - 1]?.id ?? "";
       });
+      return next;
+    });
+  }
+
+  function moveFileTab(fromId: string, toId: string) {
+    if (fromId === toId) return;
+    setOpenFiles((prev) => {
+      const fromIndex = prev.findIndex((f) => f.id === fromId);
+      const toIndex = prev.findIndex((f) => f.id === toId);
+      if (fromIndex === -1 || toIndex === -1) return prev;
+
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved!);
       return next;
     });
   }
@@ -330,6 +345,24 @@ export function ProjectWorkspace({
                                     key={f.id}
                                     value={f.id}
                                     data-tab-id={f.id}
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.effectAllowed = "move";
+                                      e.dataTransfer.setData("text/plain", f.id);
+                                      setDraggingTabId(f.id);
+                                    }}
+                                    onDragOver={(e) => {
+                                      e.preventDefault();
+                                      e.dataTransfer.dropEffect = "move";
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      const fromId = e.dataTransfer.getData("text/plain");
+                                      moveFileTab(fromId, f.id);
+                                      setDraggingTabId(null);
+                                    }}
+                                    onDragEnd={() => setDraggingTabId(null)}
+                                    className={cn(draggingTabId === f.id && "opacity-60")}
                                     closeButton={
                                       <X
                                         className="h-3 w-3"

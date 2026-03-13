@@ -44,10 +44,10 @@ export function WorkspaceTab({ className, closeButton, children, ...props }: Wor
   return (
     <TabsPrimitive.Trigger
       className={cn(
-        "group relative -mb-px flex h-8 flex-none items-center gap-2 border px-2 text-xs",
+        "group relative -mb-px flex h-9 flex-none items-center gap-2 border px-2 text-xs",
         "max-w-[14rem] rounded-none",
         "border-transparent bg-transparent text-muted-foreground",
-        "hover:border-sidebar-border hover:bg-secondary/40 hover:text-foreground",
+        "hover:border-x-sidebar-border hover:border-t-sidebar-border hover:bg-secondary/40 hover:text-foreground",
         "data-[state=active]:z-10 data-[state=active]:border-sidebar-border data-[state=active]:border-b-background data-[state=active]:bg-background data-[state=active]:text-foreground",
         className,
       )}
@@ -69,4 +69,3 @@ export function WorkspaceTab({ className, closeButton, children, ...props }: Wor
     </TabsPrimitive.Trigger>
   );
 }
-
