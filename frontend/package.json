@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.48.2",
+    "@sqlrooms/sql-editor": "^0.28.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/react": "^16.1.0",
     "@types/dockerode": "4.0.1",

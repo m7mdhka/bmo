@@ -1,7 +1,7 @@
 import Docker, { type ContainerInfo, type Port } from "dockerode";
 import { NextResponse } from "next/server";
 
-import { getDockerPreferredPrivatePorts, inferDockerEngineFromImage } from "@/components/runtime/databases/engines/docker-discovery-registry";
+import { getDockerPreferredPrivatePorts, inferDockerEngineFromImage } from "@/components/runtime/databases/docker-discovery";
 import type { DbEngine, DockerDbCandidate, DockerPublishedPort } from "@/components/runtime/databases/types";
 
 export const runtime = "nodejs";
