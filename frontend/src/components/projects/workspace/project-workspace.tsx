@@ -16,11 +16,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { WorkspaceTabsRoot, WorkspaceTabsList, WorkspaceTab } from "./workspace-tabs";
-import { WorkspaceHeader, WorkspaceHeaderIconButton } from "./workspace-header";
+import { WorkspaceHeader } from "./workspace-header";
 
 import type { FileNode, OpenFile } from "./workspace-types";
 import { WorkspaceAgentPanel } from "./workspace-agent-panel";
 import { WorkspaceFilesPanel } from "./workspace-files-panel";
+import { WorkspacePreviewPanel } from "./workspace-preview-panel";
 import { WorkspaceTerminal } from "./workspace-terminal";
 
 const MonacoEditor = dynamic(() => import("./project-workspace-editor").then((m) => m.ProjectWorkspaceEditor), {
@@ -216,33 +217,35 @@ export function ProjectWorkspace({
             {/* Feature tabs (aligned with Agent header row) */}
             <WorkspaceTabsRoot
               value={features.active}
-              onValueChange={(value) => dispatchFeatures({ type: "activate", id: value as FeatureId })}
+              onValueChange={(value: string) => {
+                if (value === "IDE" || value === "Preview" || value === "Auth") {
+                  dispatchFeatures({ type: "activate", id: value });
+                }
+              }}
             >
               <WorkspaceHeader className="h-10 items-end px-2">
                 <WorkspaceTabsList>
                   {features.open.map((id) => {
                     const canClose = features.open.length > 1;
                     return (
-                      <WorkspaceTab key={id} value={id}>
+                      <WorkspaceTab
+                        key={id}
+                        value={id}
+                        closeButton={
+                          canClose ? (
+                            <X
+                              className="h-3 w-3"
+                              aria-hidden="true"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                closeFeature(id);
+                              }}
+                            />
+                          ) : undefined
+                        }
+                      >
                         {FEATURE_LABEL[id]}
-                        {canClose ? (
-                          <button
-                            type="button"
-                            className={cn(
-                              "ml-1 inline-flex h-4 w-4 items-center justify-center border border-transparent",
-                              "text-muted-foreground hover:border-sidebar-border hover:bg-background/40 hover:text-foreground",
-                            )}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              closeFeature(id);
-                            }}
-                            aria-label={`Close ${FEATURE_LABEL[id]}`}
-                            title={`Close ${FEATURE_LABEL[id]}`}
-                          >
-                            <X className="h-3 w-3" aria-hidden="true" />
-                          </button>
-                        ) : null}
                       </WorkspaceTab>
                     );
                   })}
@@ -309,7 +312,7 @@ export function ProjectWorkspace({
                       <ResizablePanel id="editorTop" defaultSize="72%" minSize="240px" maxSize="90%" style={{ overflow: "hidden" }}>
                         <section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
                           {/* File tabs */}
-                          <WorkspaceTabsRoot value={activeId} onValueChange={(value) => setActiveId(value)}>
+                          <WorkspaceTabsRoot value={activeId} onValueChange={(value: string) => setActiveId(value)}>
                             <div className="shrink-0 flex h-10 items-end border-b border-sidebar-border bg-sidebar px-2">
                               <WorkspaceTabsList ref={tabsStripRef}>
                                 {openFiles.length === 0 ? (
@@ -324,7 +327,7 @@ export function ProjectWorkspace({
                                       <X
                                         className="h-3 w-3"
                                         aria-hidden="true"
-                                        onClick={(e: React.MouseEvent<SVGSVGElement>) => {
+                                        onClick={(e) => {
                                           e.preventDefault();
                                           e.stopPropagation();
                                           closeFile(f.id);
@@ -367,6 +370,8 @@ export function ProjectWorkspace({
                     </ResizablePanelGroup>
                   </ResizablePanel>
                 </ResizablePanelGroup>
+              ) : features.active === "Preview" ? (
+                <WorkspacePreviewPanel key={projectId} projectId={projectId} />
               ) : (
                 <div className="flex h-full items-center justify-center bg-background text-xs text-muted-foreground">
                   {features.active} view placeholder.

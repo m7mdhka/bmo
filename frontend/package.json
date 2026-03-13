@@ -26,6 +26,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dockerode": "4.0.9",
+    "eruda": "^3.4.3",
     "framer-motion": "^12.35.2",
     "lucide-react": "^0.577.0",
     "monaco-editor": "^0.55.1",
