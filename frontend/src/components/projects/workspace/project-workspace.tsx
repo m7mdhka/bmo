@@ -299,10 +299,10 @@ export function ProjectWorkspace({
                     defaultSize="28%"
                     minSize="240px"
                     maxSize="35%"
-                    className="min-w-0 bg-sidebar text-sidebar-foreground"
-                    style={{ overflow: "hidden" }}
-                  >
-                    <WorkspaceFilesPanel treeData={treeData} onOpenFile={openFile} />
+                  className="min-w-0 bg-sidebar text-sidebar-foreground"
+                  style={{ overflow: "hidden" }}
+                >
+                    <WorkspaceFilesPanel treeData={treeData} onOpenFile={openFile} activeFileId={activeId} />
                   </ResizablePanel>
 
                   <ResizableHandle />

@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { NodeApi } from "react-arborist";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { NodeApi, TreeApi } from "react-arborist";
 import { Tree } from "react-arborist";
 import { AutoSizer } from "react-virtualized-auto-sizer";
 import { ChevronRight, File, Folder, FolderOpen, Search, X } from "lucide-react";
@@ -13,11 +13,14 @@ import { WorkspaceHeader } from "./workspace-header";
 export function WorkspaceFilesPanel({
   treeData,
   onOpenFile,
+  activeFileId,
 }: {
   treeData: FileNode[];
   onOpenFile: (id: string) => void;
+  activeFileId: string;
 }) {
   const [fileQuery, setFileQuery] = useState("");
+  const treeRef = useRef<TreeApi<FileNode> | null>(null);
 
   const searchTerm = fileQuery.trim();
   const searchMatch = useMemo(() => {
@@ -27,6 +30,11 @@ export function WorkspaceFilesPanel({
       return node.data.name.toLowerCase().includes(q);
     };
   }, []);
+
+  useEffect(() => {
+    if (!activeFileId) return;
+    treeRef.current?.openParents(activeFileId);
+  }, [activeFileId, treeData]);
 
   return (
     <div className="flex h-full flex-col">
@@ -62,6 +70,7 @@ export function WorkspaceFilesPanel({
             if (!width || !height) return null;
             return (
               <Tree<FileNode>
+                ref={treeRef}
                 data={treeData}
                 width={width}
                 height={height}
@@ -78,7 +87,7 @@ export function WorkspaceFilesPanel({
                   else onOpenFile(node.data.id);
                 }}
               >
-                {FileTreeRow}
+                {(props) => <FileTreeRow {...props} activeFileId={activeFileId} />}
               </Tree>
             );
           }}
@@ -88,9 +97,18 @@ export function WorkspaceFilesPanel({
   );
 }
 
-function FileTreeRow({ node, style }: { node: NodeApi<FileNode>; style: React.CSSProperties }) {
+function FileTreeRow({
+  node,
+  style,
+  activeFileId,
+}: {
+  node: NodeApi<FileNode>;
+  style: React.CSSProperties;
+  activeFileId: string;
+}) {
   const isFolder = node.data.type === "folder";
   const isOpen = isFolder ? node.isOpen : false;
+  const isActiveFile = !isFolder && node.data.id === activeFileId;
   const Icon = isFolder ? (isOpen ? FolderOpen : Folder) : File;
   const indent = node.tree.props.indent ?? 14;
   const padLeft = 10 + node.level * indent;
@@ -100,8 +118,8 @@ function FileTreeRow({ node, style }: { node: NodeApi<FileNode>; style: React.CS
       <div
         className={cn(
           "group mx-2 flex h-[26px] items-center gap-1.5 border border-transparent text-xs",
-          node.isSelected
-            ? "bg-secondary/30 text-sidebar-foreground"
+          isActiveFile
+            ? "border-sidebar-border bg-secondary/40 text-sidebar-foreground"
             : "text-sidebar-foreground/90 hover:border-sidebar-border hover:bg-secondary/40",
         )}
         style={{ paddingLeft: padLeft }}
