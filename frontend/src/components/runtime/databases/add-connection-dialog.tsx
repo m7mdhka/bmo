@@ -6,7 +6,7 @@ import { Container, Pencil, Plus, RefreshCw } from "lucide-react";
 import type { DbConn, DbDetails, DbEngine, DockerDbCandidate } from "./types";
 import {
   ENGINE_DEFINITIONS,
-  ENGINE_GROUPS,
+  ENGINE_FAMILY_GROUPS,
   getEngineDefinition,
   withEngineDefinition,
 } from "./registry";
@@ -114,9 +114,9 @@ function ConnectionDialog({
                   }}
                   className="w-full border border-border bg-background px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring/30"
                 >
-                  {ENGINE_GROUPS.map((group) => (
-                    <optgroup key={group} label={group}>
-                      {ENGINE_DEFINITIONS.filter((d) => d.group === group).map((d) => (
+                  {ENGINE_FAMILY_GROUPS.map((family) => (
+                    <optgroup key={family.id} label={family.label}>
+                      {ENGINE_DEFINITIONS.filter((d) => family.engineIds.includes(d.id)).map((d) => (
                         <option key={d.id} value={d.id}>
                           {d.label}
                         </option>

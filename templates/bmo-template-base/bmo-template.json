@@ -1,0 +1,11 @@
+{
+  "name": "BMO Base Template",
+  "description": "Minimal base template showing the required manifest and structure for BMO-compatible templates.",
+  "category": "example",
+  "tags": ["bmo", "template", "base", "example"],
+  "bmoTemplateVersion": 1,
+  "icon": "template",
+  "homepage": "https://github.com/your-user/bmo-template-base",
+  "postCreateCommands": []
+}
+

@@ -20,6 +20,7 @@ import { WorkspaceHeader } from "./workspace-header";
 
 import type { FileNode, OpenFile } from "./workspace-types";
 import { WorkspaceAgentPanel } from "./workspace-agent-panel";
+import { WorkspaceDatabasePanel } from "./workspace-database-panel";
 import { WorkspaceFilesPanel } from "./workspace-files-panel";
 import { WorkspacePreviewPanel } from "./workspace-preview-panel";
 import { WorkspaceTerminal } from "./workspace-terminal";
@@ -73,12 +74,13 @@ function flattenFiles(nodes: FileNode[]) {
   return out;
 }
 
-type FeatureId = "IDE" | "Preview" | "Auth";
+type FeatureId = "IDE" | "Preview" | "Auth" | "Database";
 
 const FEATURE_LABEL: Record<FeatureId, string> = {
   IDE: "IDE",
   Preview: "Preview",
   Auth: "Auth",
+  Database: "Database",
 };
 
 type FeatureTabsState = {
@@ -218,7 +220,12 @@ export function ProjectWorkspace({
             <WorkspaceTabsRoot
               value={features.active}
               onValueChange={(value: string) => {
-                if (value === "IDE" || value === "Preview" || value === "Auth") {
+                if (
+                  value === "IDE" ||
+                  value === "Preview" ||
+                  value === "Auth" ||
+                  value === "Database"
+                ) {
                   dispatchFeatures({ type: "activate", id: value });
                 }
               }}
@@ -372,6 +379,8 @@ export function ProjectWorkspace({
                 </ResizablePanelGroup>
               ) : features.active === "Preview" ? (
                 <WorkspacePreviewPanel key={projectId} projectId={projectId} />
+              ) : features.active === "Database" ? (
+                <WorkspaceDatabasePanel />
               ) : (
                 <div className="flex h-full items-center justify-center bg-background text-xs text-muted-foreground">
                   {features.active} view placeholder.
