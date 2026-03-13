@@ -12,13 +12,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AppPageShell } from "@/components/layout/app-page-shell";
 
 import type { ConnStatus, DbConn } from "@/components/runtime/databases/types";
-import { DetailRow } from "@/components/runtime/databases/detail-row";
+import { DetailRow } from "@/components/runtime/databases/ui/components/detail-row";
 import {
   AddConnectionButton,
   ConnectFromDockerButton,
   EditConnectionButton,
-} from "@/components/runtime/databases/add-connection-dialog";
-import { LastCheckRow } from "@/components/runtime/databases/last-check-row";
+} from "@/components/runtime/databases/ui/connections/add-connection-dialog";
+import { LastCheckRow } from "@/components/runtime/databases/ui/components/last-check-row";
 import {
   ENGINE_REGISTRY,
   withEngineDefinition,

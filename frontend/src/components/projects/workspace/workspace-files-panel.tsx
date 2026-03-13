@@ -31,7 +31,7 @@ export function WorkspaceFilesPanel({
   return (
     <div className="flex h-full flex-col">
       {/* Top bar (aligned with Agent + Editor) */}
-      <WorkspaceHeader className="items-center">
+      <WorkspaceHeader className="items-center px-2">
         <div className="relative w-full">
           <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/70" aria-hidden="true" />
           <input
@@ -56,7 +56,7 @@ export function WorkspaceFilesPanel({
         </div>
       </WorkspaceHeader>
 
-      <div className="min-h-0 flex-1 overflow-hidden pb-2">
+      <div className="min-h-0 flex-1 overflow-hidden pt-2 pb-2">
         <AutoSizer
           renderProp={({ width, height }) => {
             if (!width || !height) return null;
@@ -96,12 +96,12 @@ function FileTreeRow({ node, style }: { node: NodeApi<FileNode>; style: React.CS
   const padLeft = 10 + node.level * indent;
 
   return (
-    <div style={style} className="px-2">
+    <div style={style}>
       <div
         className={cn(
-          "group flex h-[26px] w-full items-center gap-1.5 border border-transparent text-xs",
+          "group mx-2 flex h-[26px] items-center gap-1.5 border border-transparent text-xs",
           node.isSelected
-            ? "border-primary/40 bg-primary/10 text-primary"
+            ? "bg-secondary/30 text-sidebar-foreground"
             : "text-sidebar-foreground/90 hover:border-sidebar-border hover:bg-secondary/40",
         )}
         style={{ paddingLeft: padLeft }}
