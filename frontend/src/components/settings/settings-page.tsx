@@ -5,7 +5,6 @@ import {
   Bot,
   FolderOpen,
   Gauge,
-  Layers,
   TerminalSquare,
 } from "lucide-react";
 
@@ -41,12 +40,11 @@ export function SettingsPage() {
   const [workspacePath, setWorkspacePath] = useState<string>("~/bmo-projects");
 
   const [activeSection, setActiveSection] = useState<
-    "general" | "agents" | "templates" | "runtime" | "diagnostics"
+    "general" | "agents" | "runtime" | "diagnostics"
   >("general");
 
   const [agentsCanEditFiles, setAgentsCanEditFiles] = useState(true);
   const [agentsCanRunCommands, setAgentsCanRunCommands] = useState(false);
-  const [communityTemplates, setCommunityTemplates] = useState(true);
   const [telemetry, setTelemetry] = useState(false);
 
   return (
@@ -75,7 +73,6 @@ export function SettingsPage() {
           {[
             { id: "general", label: "General" },
             { id: "agents", label: "Agents" },
-            { id: "templates", label: "Templates" },
             { id: "runtime", label: "Runtime" },
             { id: "diagnostics", label: "Diagnostics" },
           ].map((item) => (
@@ -169,21 +166,6 @@ export function SettingsPage() {
             </section>
           )}
 
-          {activeSection === "templates" && (
-            <section className="space-y-3">
-              <h2 className="flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                <Layers className="h-3 w-3" aria-hidden />
-                Templates
-              </h2>
-              <ToggleRow
-                label="Enable community templates"
-                description="Show community templates alongside official BMO starters."
-                checked={communityTemplates}
-                onChange={setCommunityTemplates}
-              />
-            </section>
-          )}
-
           {activeSection === "runtime" && (
             <section className="space-y-3">
               <h2 className="flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
@@ -191,9 +173,9 @@ export function SettingsPage() {
                 Runtime
               </h2>
               <div className="space-y-1 text-[11px] text-muted-foreground">
-                <p>Projects run in Docker containers managed by BMO.</p>
+                <p>BMO runs web app projects as Docker Compose stacks managed by the local orchestrator.</p>
                 <p className="text-[10px] text-muted-foreground/60">
-                  Future versions will allow per-project resource and port limits.
+                  The current product is optimized for frontend + backend web app workflows, with room to grow into broader runtime types later.
                 </p>
               </div>
             </section>

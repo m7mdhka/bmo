@@ -7,5 +7,50 @@
   "icon": "nextjs",
   "language": "TypeScript",
   "maintainedBy": "BMO team",
-  "postCreateCommands": ["npm install --prefix frontend", "npm install --prefix backend"]
+  "postCreateCommands": ["npm install --prefix frontend", "npm install --prefix backend"],
+  "runtime": {
+    "defaultTerminalService": "workspace",
+    "previewPortId": "web",
+    "services": [
+      {
+        "name": "workspace",
+        "label": "Workspace shell",
+        "role": "workspace"
+      },
+      {
+        "name": "frontend",
+        "label": "Web app",
+        "role": "frontend"
+      },
+      {
+        "name": "backend",
+        "label": "API server",
+        "role": "backend"
+      }
+    ],
+    "ports": [
+      {
+        "id": "web",
+        "label": "Web preview",
+        "service": "frontend",
+        "containerPort": 3000,
+        "preferredHostPort": 3000,
+        "envVar": "FRONTEND_PORT",
+        "kind": "preview"
+      },
+      {
+        "id": "api",
+        "label": "API",
+        "service": "backend",
+        "containerPort": 4000,
+        "preferredHostPort": 4000,
+        "envVar": "BACKEND_PORT",
+        "kind": "api"
+      }
+    ],
+    "envTemplates": {
+      "NEXT_PUBLIC_API_BASE_URL": "http://localhost:${port:api}/api",
+      "CORS_ORIGIN": "http://localhost:${port:web}"
+    }
+  }
 }

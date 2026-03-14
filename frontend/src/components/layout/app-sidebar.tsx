@@ -25,7 +25,7 @@ const NAV_ITEMS: NavItem[] = [
   { icon: FolderKanban, href: "/projects", label: "Projects", section: "workspace" },
   { icon: Database, href: "/databases", label: "Connected Databases", section: "runtime" },
   { icon: BrainCircuit, href: "/llm-providers", label: "LLM Providers", section: "ai" },
-  { icon: Box, href: "/templates", label: "Templates", section: "system" },
+  { icon: Box, href: "/templates", label: "Starters", section: "system" },
   { icon: Settings, href: "/settings", label: "Settings", section: "system" },
 ];
 

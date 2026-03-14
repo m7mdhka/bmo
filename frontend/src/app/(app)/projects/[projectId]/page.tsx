@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ProjectWorkspace } from "@/components/projects/workspace/project-workspace";
-import { getProject, getProjectTree } from "@/lib/projects";
+import { getProject, getProjectPreviewUrl, getProjectRuntime, getProjectTree } from "@/lib/projects";
 
 export const dynamic = "force-dynamic";
 
@@ -15,8 +15,9 @@ export default async function ProjectWorkspacePage({
   const { projectId } = await params;
   const project = await getProject(projectId);
   const treeData = await getProjectTree(projectId);
+  const runtime = project ? await getProjectRuntime(projectId) : null;
 
-  if (!project || !treeData) {
+  if (!project || !treeData || !runtime) {
     notFound();
   }
 
@@ -25,8 +26,9 @@ export default async function ProjectWorkspacePage({
       key={projectId}
       projectId={projectId}
       treeData={treeData}
-      previewUrl={project.frontendPort ? `http://localhost:${project.frontendPort}` : null}
+      previewUrl={project.status === "running" && runtime.previewService ? getProjectPreviewUrl(project) : null}
       projectStatus={project.status}
+      runtimeInfo={runtime}
     />
   );
 }

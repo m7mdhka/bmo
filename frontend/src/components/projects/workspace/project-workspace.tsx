@@ -20,7 +20,7 @@ import {
 import { WorkspaceTabsRoot, WorkspaceTabsList, WorkspaceTab } from "./workspace-tabs";
 import { WorkspaceHeader } from "./workspace-header";
 
-import type { FileNode, OpenFile } from "./workspace-types";
+import type { FileNode, OpenFile, ProjectRuntimeInfo } from "./workspace-types";
 import { WorkspaceAgentPanel } from "./workspace-agent-panel";
 import { WorkspaceDatabasePanel } from "./workspace-database-panel";
 import { WorkspaceFilesPanel } from "./workspace-files-panel";
@@ -92,11 +92,13 @@ export function ProjectWorkspace({
   treeData,
   previewUrl,
   projectStatus,
+  runtimeInfo,
 }: {
   projectId: string;
   treeData: FileNode[];
   previewUrl: string | null;
   projectStatus: "running" | "stopped";
+  runtimeInfo: ProjectRuntimeInfo;
 }) {
   const router = useRouter();
   const byId = useMemo(() => flattenFiles(treeData), [treeData]);
@@ -114,6 +116,7 @@ export function ProjectWorkspace({
   const [activeId, setActiveId] = useState(defaultFile?.type === "file" ? defaultFile.id : "");
   const [draggingTabId, setDraggingTabId] = useState<string | null>(null);
   const [actionInFlight, setActionInFlight] = useState<string | null>(null);
+  const [pendingRuntimeFiles, setPendingRuntimeFiles] = useState<string[]>([]);
 
   const [features, dispatchFeatures] = useReducer(featureTabsReducer, {
     open: ["IDE"],
@@ -121,6 +124,8 @@ export function ProjectWorkspace({
   });
 
   const tabsStripRef = useRef<HTMLDivElement | null>(null);
+  const saveTimersRef = useRef<Record<string, number>>({});
+  const pendingSaveContentsRef = useRef<Record<string, string>>({});
 
   useEffect(() => {
     // Avoid "already scrolled" feeling when switching workspaces or after HMR.
@@ -132,6 +137,60 @@ export function ProjectWorkspace({
     const el = tabsStripRef.current?.querySelector<HTMLElement>(`[data-tab-id="${activeId}"]`);
     el?.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, [activeId]);
+
+  useEffect(() => {
+    const saveTimers = saveTimersRef;
+    return () => {
+      for (const timer of Object.values(saveTimers.current)) {
+        window.clearTimeout(timer);
+      }
+    };
+  }, []);
+
+  function isRuntimeManagedFile(fileId: string) {
+    return fileId === "docker-compose.yml" || fileId.endsWith("/Dockerfile") || fileId === "Dockerfile";
+  }
+
+  function queueFileSave(fileId: string, content: string) {
+    pendingSaveContentsRef.current[fileId] = content;
+    const existing = saveTimersRef.current[fileId];
+    if (existing) window.clearTimeout(existing);
+
+    saveTimersRef.current[fileId] = window.setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/projects/${projectId}/files`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ fileId, content: pendingSaveContentsRef.current[fileId] ?? content }),
+        });
+        const data = (await res.json()) as { error?: string };
+        if (!res.ok) throw new Error(data.error ?? "Failed to save file.");
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : "Failed to save file.");
+      } finally {
+        delete saveTimersRef.current[fileId];
+        delete pendingSaveContentsRef.current[fileId];
+      }
+    }, 700);
+  }
+
+  async function flushPendingSaves() {
+    const pendingEntries = Object.entries(pendingSaveContentsRef.current);
+    for (const [fileId, content] of pendingEntries) {
+      const timer = saveTimersRef.current[fileId];
+      if (timer) window.clearTimeout(timer);
+      delete saveTimersRef.current[fileId];
+
+      const res = await fetch(`/api/projects/${projectId}/files`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ fileId, content }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Failed to save file.");
+      delete pendingSaveContentsRef.current[fileId];
+    }
+  }
 
   function openFile(id: string) {
     const n = byId.get(id);
@@ -187,9 +246,13 @@ export function ProjectWorkspace({
     dispatchFeatures({ type: "close", id });
   }
 
-  async function handleProjectAction(action: "start" | "stop" | "restart" | "delete") {
+  async function handleProjectAction(action: "start" | "stop" | "restart" | "delete" | "apply") {
     setActionInFlight(action);
     try {
+      if (action === "apply") {
+        await flushPendingSaves();
+      }
+
       if (action === "delete") {
         const res = await fetch(`/api/projects/${projectId}`, { method: "DELETE" });
         const data = (await res.json()) as { error?: string };
@@ -199,13 +262,18 @@ export function ProjectWorkspace({
         return;
       }
 
-      const res = await fetch(`/api/projects/${projectId}`, {
+      const endpoint = action === "apply" ? `/api/projects/${projectId}/runtime` : `/api/projects/${projectId}`;
+      const body = action === "apply" ? { action: "apply" } : { action };
+      const res = await fetch(endpoint, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify(body),
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(data.error ?? "Project action failed.");
+      if (action === "apply") {
+        setPendingRuntimeFiles([]);
+      }
       router.refresh();
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "Project action failed.");
@@ -316,6 +384,12 @@ export function ProjectWorkspace({
                       )}
                       <DropdownMenuItem disabled={!!actionInFlight} onSelect={() => handleProjectAction("restart")}>
                         Restart project
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        disabled={!!actionInFlight || pendingRuntimeFiles.length === 0}
+                        onSelect={() => handleProjectAction("apply")}
+                      >
+                        Apply runtime changes
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
@@ -451,6 +525,10 @@ export function ProjectWorkspace({
                                 value={active.content}
                                 onChange={(next) => {
                                   setOpenFiles((prev) => prev.map((f) => (f.id === active.id ? { ...f, content: next } : f)));
+                                  queueFileSave(active.id, next);
+                                  if (isRuntimeManagedFile(active.id)) {
+                                    setPendingRuntimeFiles((prev) => (prev.includes(active.id) ? prev : [...prev, active.id]));
+                                  }
                                 }}
                               />
                             ) : (
@@ -465,7 +543,12 @@ export function ProjectWorkspace({
                       <ResizableHandle orientation="vertical" />
 
                       <ResizablePanel id="terminal" defaultSize="28%" minSize="140px" maxSize="55%" style={{ overflow: "hidden" }}>
-                        <WorkspaceTerminal projectId={projectId} />
+                        <WorkspaceTerminal
+                          projectId={projectId}
+                          runtimeInfo={runtimeInfo}
+                          hasPendingRuntimeChanges={pendingRuntimeFiles.length > 0}
+                          onApplyRuntimeChanges={() => handleProjectAction("apply")}
+                        />
                       </ResizablePanel>
                     </ResizablePanelGroup>
                   </ResizablePanel>

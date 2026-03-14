@@ -25,6 +25,7 @@ function normalizeInternalPath(input: string) {
 }
 
 export function WorkspacePreviewPanel({ projectId, previewUrl }: { projectId: string; previewUrl: string | null }) {
+  const previewAvailable = Boolean(previewUrl);
   const initial = useMemo(() => previewUrl ?? defaultPreviewPath(projectId), [previewUrl, projectId]);
 
   const [nav, setNav] = useState<{ entries: string[]; index: number }>(() => ({
@@ -227,16 +228,22 @@ export function WorkspacePreviewPanel({ projectId, previewUrl }: { projectId: st
 
       <div className="min-h-0 flex-1 overflow-hidden p-2">
         <div className="h-full w-full overflow-hidden border border-sidebar-border bg-background">
-          <iframe
-            ref={iframeRef}
-            title="Project preview"
-            src={currentUrl}
-            className="h-full w-full"
-            // Keep the preview "webview" isolated from the parent app.
-            // We intentionally do NOT allow top navigation from the iframe.
-            sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"
-            onLoad={syncAddressBarFromIframe}
-          />
+          {previewAvailable ? (
+            <iframe
+              ref={iframeRef}
+              title="Project preview"
+              src={currentUrl}
+              className="h-full w-full"
+              // Keep the preview "webview" isolated from the parent app.
+              // We intentionally do NOT allow top navigation from the iframe.
+              sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"
+              onLoad={syncAddressBarFromIframe}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center bg-background text-xs text-muted-foreground">
+              Frontend preview is unavailable until the project runtime is running.
+            </div>
+          )}
         </div>
       </div>
     </div>

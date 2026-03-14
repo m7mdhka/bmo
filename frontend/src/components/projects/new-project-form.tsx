@@ -32,6 +32,7 @@ type TemplateCard = Omit<TemplateRecord, "icon"> & {
   iconKey: string;
   icon: React.ElementType;
   color: string;
+  recommended: boolean;
 };
 
 const ICON_BY_KEY: Record<string, React.ElementType> = {
@@ -71,26 +72,38 @@ const FADE_UP = {
 
 export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
   const router = useRouter();
+  const initialSelectedTemplate = templates.length === 1 ? templates[0]?.id ?? "" : "";
+  const initialTemplate = templates.length === 1 ? templates[0] : undefined;
 
-  const [step, setStep] = useState<1 | 2>(1);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+  const [step, setStep] = useState<1 | 2>(initialSelectedTemplate ? 2 : 1);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>(initialSelectedTemplate);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [path, setPath] = useState("~/bmo-projects/");
   const [creating, setCreating] = useState(false);
   const [nameError, setNameError] = useState("");
   const [portDialog, setPortDialog] = useState<PortCheckResult | null>(null);
-  const [selectedPorts, setSelectedPorts] = useState({ frontendPort: 3000, backendPort: 4000 });
+  const [selectedPorts, setSelectedPorts] = useState<Record<string, number>>(
+    initialTemplate ? Object.fromEntries(initialTemplate.runtime.ports.map((port) => [port.id, port.preferredHostPort])) : {},
+  );
   const [countdown, setCountdown] = useState(20);
   const [dialogError, setDialogError] = useState("");
   const autoSubmitRef = useRef(false);
 
-  const cards: TemplateCard[] = templates.map((template) => ({
-    ...template,
-    iconKey: template.icon,
-    icon: ICON_BY_KEY[template.icon] ?? ICON_BY_KEY[template.category] ?? Package,
-    color: COLOR_BY_KEY[template.icon] ?? COLOR_BY_KEY[template.category] ?? "#6c7086",
-  }));
+  const cards: TemplateCard[] = [...templates]
+    .sort((left, right) => {
+      const leftRank = left.id === "web-app" ? 0 : left.source === "official" ? 1 : 2;
+      const rightRank = right.id === "web-app" ? 0 : right.source === "official" ? 1 : 2;
+      if (leftRank !== rightRank) return leftRank - rightRank;
+      return left.name.localeCompare(right.name);
+    })
+    .map((template) => ({
+      ...template,
+      iconKey: template.icon,
+      icon: ICON_BY_KEY[template.icon] ?? ICON_BY_KEY[template.category] ?? Package,
+      color: COLOR_BY_KEY[template.icon] ?? COLOR_BY_KEY[template.category] ?? "#6c7086",
+      recommended: template.id === "web-app",
+    }));
 
   const template = cards.find((t) => t.id === selectedTemplate);
 
@@ -103,6 +116,12 @@ export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
 
   function handleSelectTemplate(id: string) {
     setSelectedTemplate(id);
+    const nextTemplate = cards.find((card) => card.id === id);
+    setSelectedPorts(
+      nextTemplate
+        ? Object.fromEntries(nextTemplate.runtime.ports.map((port) => [port.id, port.preferredHostPort]))
+        : {},
+    );
     setStep(2);
   }
 
@@ -118,7 +137,7 @@ export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
     return true;
   }
 
-  async function submitProject(frontendPort?: number, backendPort?: number, fromDialog = false) {
+  async function submitProject(ports?: Record<string, number>, fromDialog = false) {
     if (!template) return;
     try {
       const res = await fetch("/api/projects", {
@@ -131,8 +150,7 @@ export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
           templateName: template.name,
           language: template.language,
           path,
-          frontendPort,
-          backendPort,
+          ports,
         }),
       });
       const data = (await res.json()) as { error?: string };
@@ -155,8 +173,8 @@ export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
     }
   }
 
-  const submitProjectEvent = useEffectEvent(async (frontendPort?: number, backendPort?: number, fromDialog = false) => {
-    await submitProject(frontendPort, backendPort, fromDialog);
+  const submitProjectEvent = useEffectEvent(async (ports?: Record<string, number>, fromDialog = false) => {
+    await submitProject(ports, fromDialog);
   });
 
   useEffect(() => {
@@ -173,7 +191,7 @@ export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
       if (autoSubmitRef.current) return;
       if (countdown <= 1) {
         autoSubmitRef.current = true;
-        void submitProjectEvent(portDialog.suggested.frontendPort, portDialog.suggested.backendPort, true);
+        void submitProjectEvent(portDialog.suggested, true);
       }
     }, 1000);
 
@@ -190,7 +208,12 @@ export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
       const res = await fetch("/api/projects/ports", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ frontendPort: 3000, backendPort: 4000 }),
+        body: JSON.stringify({
+          templateId: template.id,
+          ports: Object.fromEntries(
+            template.runtime.ports.map((port) => [port.id, selectedPorts[port.id] ?? port.preferredHostPort]),
+          ),
+        }),
       });
       const data = (await res.json()) as PortCheckResult & { error?: string };
       if (!res.ok) {
@@ -203,9 +226,10 @@ export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
         setCountdown(20);
         setSelectedPorts(data.suggested);
         setPortDialog(data);
+        setCreating(false);
         return;
       }
-      await submitProject(data.suggested.frontendPort, data.suggested.backendPort);
+      await submitProject(data.suggested);
     } catch {
       setNameError("Failed to check ports.");
       setCreating(false);
@@ -241,7 +265,7 @@ export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
               Choose a template
             </h2>
             <p className="mb-4 text-xs text-muted-foreground">
-              Select a starting point for your project.
+              BMO is optimized for full-stack web apps. Start with the web app template unless you have a specific reason not to.
             </p>
 
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -260,6 +284,11 @@ export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
                       className="absolute inset-y-0 left-0 w-0.5 opacity-0 transition-opacity group-hover:opacity-100"
                       style={{ background: tpl.color }}
                     />
+                    {tpl.recommended ? (
+                      <span className="absolute top-3 right-3 border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.16em] text-primary">
+                        Recommended
+                      </span>
+                    ) : null}
                     <Icon
                       className="mb-2 h-4 w-4"
                       style={{ color: tpl.color }}
@@ -333,7 +362,7 @@ export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
               <Field label="Description">
                 <input
                   type="text"
-                  placeholder="A short description (optional)"
+                  placeholder="A short description of your web app"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="w-full border border-border bg-card px-3 py-2 font-mono text-xs text-foreground placeholder:text-muted-foreground/40 focus:border-primary/60 focus:outline-none"
@@ -354,6 +383,26 @@ export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
                   />
                 </div>
               </Field>
+
+              {template.runtime.ports.length > 0 ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {template.runtime.ports.map((port) => (
+                    <Field key={port.id} label={port.label}>
+                      <input
+                        type="number"
+                        value={selectedPorts[port.id] ?? port.preferredHostPort}
+                        onChange={(e) =>
+                          setSelectedPorts((current) => ({
+                            ...current,
+                            [port.id]: Number(e.target.value) || 0,
+                          }))
+                        }
+                        className="w-full border border-border bg-card px-3 py-2 font-mono text-xs text-foreground focus:border-primary/60 focus:outline-none"
+                      />
+                    </Field>
+                  ))}
+                </div>
+              ) : null}
             </div>
 
             {/* Actions */}
@@ -404,29 +453,30 @@ export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
 
           {portDialog ? (
             <div className="space-y-3">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="Frontend port">
-                  <input
-                    type="number"
-                    value={selectedPorts.frontendPort}
-                    onChange={(e) => setSelectedPorts((current) => ({ ...current, frontendPort: Number(e.target.value) || 0 }))}
-                    className="w-full border border-border bg-card px-3 py-2 font-mono text-xs text-foreground focus:border-primary/60 focus:outline-none"
-                  />
-                </Field>
-                <Field label="Backend port">
-                  <input
-                    type="number"
-                    value={selectedPorts.backendPort}
-                    onChange={(e) => setSelectedPorts((current) => ({ ...current, backendPort: Number(e.target.value) || 0 }))}
-                    className="w-full border border-border bg-card px-3 py-2 font-mono text-xs text-foreground focus:border-primary/60 focus:outline-none"
-                  />
-                </Field>
-              </div>
+              {template ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {template.runtime.ports.map((port) => (
+                    <Field key={port.id} label={port.label}>
+                      <input
+                        type="number"
+                        value={selectedPorts[port.id] ?? port.preferredHostPort}
+                        onChange={(e) =>
+                          setSelectedPorts((current) => ({
+                            ...current,
+                            [port.id]: Number(e.target.value) || 0,
+                          }))
+                        }
+                        className="w-full border border-border bg-card px-3 py-2 font-mono text-xs text-foreground focus:border-primary/60 focus:outline-none"
+                      />
+                    </Field>
+                  ))}
+                </div>
+              ) : null}
 
               <div className="border border-border bg-card px-3 py-2 text-[11px] text-muted-foreground">
                 {portDialog.conflicts.map((conflict) => (
-                  <p key={conflict.key}>
-                    {conflict.key === "frontendPort" ? "Frontend" : "Backend"} port {conflict.desired} is occupied. Suggested: {conflict.suggested}
+                  <p key={conflict.id}>
+                    {conflict.label} port {conflict.desired} is occupied. Suggested: {conflict.suggested}
                   </p>
                 ))}
               </div>
@@ -452,7 +502,7 @@ export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
               disabled={creating}
               onClick={() => {
                 setCountdown(0);
-                void submitProject(selectedPorts.frontendPort, selectedPorts.backendPort, true);
+                void submitProject(selectedPorts, true);
               }}
             >
               Change
@@ -461,7 +511,7 @@ export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
               disabled={creating}
               onClick={() => {
                 setCountdown(0);
-                void submitProject(portDialog?.suggested.frontendPort, portDialog?.suggested.backendPort, true);
+                void submitProject(portDialog?.suggested, true);
               }}
             >
               Continue{countdown > 0 ? ` (${countdown})` : ""}

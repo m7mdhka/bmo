@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { getProject } from "@/lib/projects";
+import { getProject, getProjectPreviewUrl } from "@/lib/projects";
 import { PreviewClient } from "./preview-client";
 
 export const dynamic = "force-dynamic";
@@ -12,9 +12,10 @@ type PreviewPageProps = {
 export default async function PreviewPage({ params }: PreviewPageProps) {
   const { projectId } = await params;
   const project = await getProject(projectId);
+  const previewUrl = project ? getProjectPreviewUrl(project) : null;
 
-  if (project?.frontendPort) {
-    redirect(`http://localhost:${project.frontendPort}`);
+  if (previewUrl) {
+    redirect(previewUrl);
   }
 
   return <PreviewClient projectId={projectId} />;

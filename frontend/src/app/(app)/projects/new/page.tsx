@@ -5,6 +5,8 @@ export const metadata = {
   title: "New project · BMO",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function NewProjectPage() {
   const templates = await loadTemplates();
   return (

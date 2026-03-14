@@ -13,8 +13,7 @@ export async function POST(req: Request) {
       templateName?: string;
       language?: string;
       path?: string;
-      frontendPort?: number;
-      backendPort?: number;
+      ports?: Record<string, number>;
     };
 
     const id = body.id?.trim() ?? "";
@@ -31,8 +30,7 @@ export async function POST(req: Request) {
       templateName: body.templateName?.trim() ?? templateId,
       language: body.language?.trim() ?? "TypeScript",
       path,
-      frontendPort: typeof body.frontendPort === "number" ? body.frontendPort : undefined,
-      backendPort: typeof body.backendPort === "number" ? body.backendPort : undefined,
+      ports: typeof body.ports === "object" && body.ports ? body.ports : undefined,
     });
 
     return NextResponse.json({ project });

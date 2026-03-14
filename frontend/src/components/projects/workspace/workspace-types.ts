@@ -14,3 +14,16 @@ export type OpenFile = {
   content: string;
 };
 
+export type ProjectRuntimeService = {
+  name: string;
+  status: "running" | "stopped";
+  role: "workspace" | "frontend" | "backend" | "service";
+  label: string;
+};
+
+export type ProjectRuntimeInfo = {
+  projectStatus: "running" | "stopped";
+  services: ProjectRuntimeService[];
+  defaultTerminalService: string | null;
+  previewService: string | null;
+};
