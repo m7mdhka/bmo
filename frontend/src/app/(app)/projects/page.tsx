@@ -1,44 +1,18 @@
 import { ProjectCard, type Project } from "@/components/projects/project-card";
 import { StatsBar } from "@/components/projects/stats-bar";
 import { AppPageShell } from "@/components/layout/app-page-shell";
+import { listProjects, toProjectCard } from "@/lib/projects";
 import Link from "next/link";
 import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const mockProjects: Project[] = [
-  {
-    id: "local-notes",
-    name: "local-notes",
-    description: "Simple markdown notes app running locally on port 3001.",
-    path: "~/bmo-projects/local-notes",
-    lastOpened: "just now",
-    lang: "TypeScript",
-    status: "running",
-  },
-  {
-    id: "landing-page",
-    name: "landing-page",
-    description: "Static marketing site built with Next.js and Tailwind CSS.",
-    path: "~/bmo-projects/landing-page",
-    lastOpened: "2h ago",
-    lang: "TypeScript",
-    status: "stopped",
-  },
-  {
-    id: "api-service",
-    name: "api-service",
-    description: "FastAPI backend with async endpoints and auto-generated docs.",
-    path: "~/bmo-projects/api-service",
-    lastOpened: "yesterday",
-    lang: "Python",
-    status: "stopped",
-  },
-];
+export const dynamic = "force-dynamic";
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const projects: Project[] = (await listProjects()).map(toProjectCard);
   return (
     <AppPageShell
-      eyebrow={`~/workspace · ${mockProjects.length} project${mockProjects.length !== 1 ? "s" : ""}`}
+      eyebrow={`~/workspace · ${projects.length} project${projects.length !== 1 ? "s" : ""}`}
       title="Projects"
       iconName="FolderKanban"
       actions={
@@ -62,7 +36,7 @@ export default function ProjectsPage() {
     >
       <StatsBar />
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {mockProjects.map((project, i) => (
+        {projects.map((project, i) => (
           <ProjectCard key={project.id} project={project} index={i} />
         ))}
       </div>

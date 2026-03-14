@@ -1,0 +1,11 @@
+{
+  "name": "FastAPI Service",
+  "description": "Python REST API with auto-generated OpenAPI docs and async support.",
+  "category": "backend",
+  "tags": ["fastapi", "python", "rest", "openapi"],
+  "bmoTemplateVersion": 1,
+  "icon": "fastapi",
+  "language": "Python",
+  "maintainedBy": "BMO team",
+  "postCreateCommands": ["pip install -r requirements.txt"]
+}

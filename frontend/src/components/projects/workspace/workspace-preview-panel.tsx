@@ -24,8 +24,8 @@ function normalizeInternalPath(input: string) {
   }
 }
 
-export function WorkspacePreviewPanel({ projectId }: { projectId: string }) {
-  const initial = useMemo(() => defaultPreviewPath(projectId), [projectId]);
+export function WorkspacePreviewPanel({ projectId, previewUrl }: { projectId: string; previewUrl: string | null }) {
+  const initial = useMemo(() => previewUrl ?? defaultPreviewPath(projectId), [previewUrl, projectId]);
 
   const [nav, setNav] = useState<{ entries: string[]; index: number }>(() => ({
     entries: [initial],

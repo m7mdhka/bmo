@@ -7,97 +7,32 @@ import { Globe2, Users, Search, ExternalLink } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { AppPageShell } from "@/components/layout/app-page-shell";
+import type { TemplateRecord, TemplateSource } from "@/lib/template-registry";
 
-type TemplateSource = "official" | "community";
-
-type Template = {
-  id: string;
-  name: string;
-  description: string;
-  source: TemplateSource;
-  tags: string[];
-  language: string;
-  url?: string;
-  maintainedBy: string;
-  installs?: string;
+type TemplatesPageProps = {
+  templates: TemplateRecord[];
 };
 
-const TEMPLATES: Template[] = [
-  {
-    id: "official-next-workspace",
-    name: "BMO · Next.js workspace",
-    description:
-      "Official starter for a BMO-managed Next.js app with TypeScript and Tailwind.",
-    source: "official",
-    tags: ["Next.js", "React", "TypeScript"],
-    language: "TypeScript",
-    maintainedBy: "BMO team",
-  },
-  {
-    id: "official-fastapi-workspace",
-    name: "BMO · FastAPI service",
-    description:
-      "FastAPI backend with async endpoints, UVicorn and example routes.",
-    source: "official",
-    tags: ["FastAPI", "Python", "REST"],
-    language: "Python",
-    maintainedBy: "BMO team",
-  },
-  {
-    id: "official-static-site",
-    name: "BMO · Static site",
-    description: "Minimal static site template (HTML/CSS/JS) with no tooling.",
-    source: "official",
-    tags: ["HTML", "CSS", "JS"],
-    language: "HTML",
-    maintainedBy: "BMO team",
-  },
-  {
-    id: "community-astro-portfolio",
-    name: "Astro developer portfolio",
-    description: "Community template for a fast content-focused portfolio.",
-    source: "community",
-    tags: ["Astro", "Content"],
-    language: "TypeScript",
-    maintainedBy: "community",
-    url: "https://github.com/withastro/astro-blog-template",
-    installs: "2.3k+",
-  },
-  {
-    id: "community-django-api",
-    name: "Django REST API",
-    description: "Django + DRF boilerplate with auth and simple CRUD.",
-    source: "community",
-    tags: ["Django", "REST"],
-    language: "Python",
-    maintainedBy: "community",
-    installs: "1.1k+",
-  },
-  {
-    id: "community-sveltekit-dashboard",
-    name: "SvelteKit dashboard",
-    description: "Admin dashboard starter with charts and auth shell.",
-    source: "community",
-    tags: ["SvelteKit", "Dashboard"],
-    language: "TypeScript",
-    maintainedBy: "community",
-    installs: "800+",
-  },
-];
+const SOURCE_META: Record<TemplateSource | "all", { label: string; icon?: typeof Globe2 }> = {
+  all: { label: "All" },
+  official: { label: "Official", icon: Globe2 },
+  community: { label: "Community", icon: Users },
+};
 
-const sources: { id: TemplateSource | "all"; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "official", label: "Official" },
-  { id: "community", label: "Community" },
-];
-
-export function TemplatesPage() {
+export function TemplatesPage({ templates }: TemplatesPageProps) {
   const [query, setQuery] = useState("");
   const [source, setSource] = useState<TemplateSource | "all">("all");
 
+  const sources = useMemo(() => {
+    const present = new Set(templates.map((template) => template.source));
+    return (["all", "official", "community"] as const)
+      .filter((id) => id === "all" || present.has(id))
+      .map((id) => ({ id, ...SOURCE_META[id] }));
+  }, [templates]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return TEMPLATES.filter((tpl) => {
+    return templates.filter((tpl) => {
       if (source !== "all" && tpl.source !== source) return false;
       if (!q) return true;
       const haystack = (
@@ -111,13 +46,13 @@ export function TemplatesPage() {
       ).toLowerCase();
       return haystack.includes(q);
     });
-  }, [query, source]);
+  }, [query, source, templates]);
 
   return (
     <AppPageShell
       eyebrow="templates"
       title="Starter templates"
-      description="Pick from official and community templates. All run locally inside BMO workspaces."
+      description="Pick from the template manifests available in this BMO workspace."
       iconName="Box"
       actions={
         <div className="relative">
@@ -149,12 +84,7 @@ export function TemplatesPage() {
                 : "border-border bg-card text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
             )}
           >
-            {s.id === "official" && (
-              <Globe2 className="h-3 w-3" aria-hidden />
-            )}
-            {s.id === "community" && (
-              <Users className="h-3 w-3" aria-hidden />
-            )}
+            {s.icon ? <s.icon className="h-3 w-3" aria-hidden /> : null}
             <span>{s.label}</span>
           </button>
         ))}
@@ -217,9 +147,7 @@ export function TemplatesPage() {
 
               <div className="mt-3 flex items-center justify-between text-[10px] text-muted-foreground/80">
                 <span>{tpl.maintainedBy}</span>
-                <span>
-                  {tpl.installs ? `${tpl.installs} installs` : "local-ready"}
-                </span>
+                <span>local-ready</span>
               </div>
 
               {tpl.url && (

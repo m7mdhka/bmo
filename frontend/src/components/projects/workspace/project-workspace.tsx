@@ -1,8 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { MoreHorizontal, X } from "lucide-react";
+import { Loader2, MoreHorizontal, Settings2, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -10,6 +11,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -28,41 +30,6 @@ import { WorkspaceTerminal } from "./workspace-terminal";
 const MonacoEditor = dynamic(() => import("./project-workspace-editor").then((m) => m.ProjectWorkspaceEditor), {
   ssr: false,
 });
-
-function buildMockTree(projectId: string): FileNode[] {
-  // Placeholder until project filesystem wiring lands.
-  const readme = `# ${projectId}\n\nThis is a local project workspace.\n`;
-  return [
-    {
-      id: "root-src",
-      name: "src",
-      type: "folder",
-      children: [
-        {
-          id: "file-app",
-          name: "app.ts",
-          type: "file",
-          language: "typescript",
-          content: `export function hello() {\n  return "Hello from ${projectId}";\n}\n`,
-        },
-        {
-          id: "file-utils",
-          name: "utils.ts",
-          type: "file",
-          language: "typescript",
-          content: `export function sum(a: number, b: number) {\n  return a + b;\n}\n`,
-        },
-      ],
-    },
-    {
-      id: "file-readme",
-      name: "README.md",
-      type: "file",
-      language: "markdown",
-      content: readme,
-    },
-  ];
-}
 
 function flattenFiles(nodes: FileNode[]) {
   const out = new Map<string, FileNode>();
@@ -122,17 +89,31 @@ function featureTabsReducer(state: FeatureTabsState, action: FeatureTabsAction):
 
 export function ProjectWorkspace({
   projectId,
+  treeData,
+  previewUrl,
+  projectStatus,
 }: {
   projectId: string;
+  treeData: FileNode[];
+  previewUrl: string | null;
+  projectStatus: "running" | "stopped";
 }) {
-  const treeData = useMemo(() => buildMockTree(projectId), [projectId]);
+  const router = useRouter();
   const byId = useMemo(() => flattenFiles(treeData), [treeData]);
+  const defaultFile = useMemo(() => {
+    const preferred = Array.from(byId.values()).find((node) => node.type === "file" && node.name.toLowerCase() === "readme.md");
+    if (preferred?.type === "file") return preferred;
+    return Array.from(byId.values()).find((node) => node.type === "file") ?? null;
+  }, [byId]);
 
-  const [openFiles, setOpenFiles] = useState<OpenFile[]>(() => [
-    { id: "file-readme", title: "README.md", language: "markdown", content: byId.get("file-readme")?.content ?? "" },
-  ]);
-  const [activeId, setActiveId] = useState(openFiles[0]?.id ?? "");
+  const [openFiles, setOpenFiles] = useState<OpenFile[]>(() =>
+    defaultFile && defaultFile.type === "file"
+      ? [{ id: defaultFile.id, title: defaultFile.name, language: defaultFile.language, content: defaultFile.content ?? "" }]
+      : [],
+  );
+  const [activeId, setActiveId] = useState(defaultFile?.type === "file" ? defaultFile.id : "");
   const [draggingTabId, setDraggingTabId] = useState<string | null>(null);
+  const [actionInFlight, setActionInFlight] = useState<string | null>(null);
 
   const [features, dispatchFeatures] = useReducer(featureTabsReducer, {
     open: ["IDE"],
@@ -206,6 +187,33 @@ export function ProjectWorkspace({
     dispatchFeatures({ type: "close", id });
   }
 
+  async function handleProjectAction(action: "start" | "stop" | "restart" | "delete") {
+    setActionInFlight(action);
+    try {
+      if (action === "delete") {
+        const res = await fetch(`/api/projects/${projectId}`, { method: "DELETE" });
+        const data = (await res.json()) as { error?: string };
+        if (!res.ok) throw new Error(data.error ?? "Failed to delete project.");
+        router.push("/projects");
+        router.refresh();
+        return;
+      }
+
+      const res = await fetch(`/api/projects/${projectId}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Project action failed.");
+      router.refresh();
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Project action failed.");
+    } finally {
+      setActionInFlight(null);
+    }
+  }
+
   return (
     <div className="flex h-full flex-1 overflow-hidden">
       {/* Outer split: Agent | Main */}
@@ -246,62 +254,114 @@ export function ProjectWorkspace({
               }}
             >
               <WorkspaceHeader className="h-10 items-end px-2">
-                <WorkspaceTabsList>
-                  {features.open.map((id) => {
-                    const canClose = features.open.length > 1;
-                    return (
-                      <WorkspaceTab
-                        key={id}
-                        value={id}
-                        closeButton={
-                          canClose ? (
-                            <X
-                              className="h-3 w-3"
-                              aria-hidden="true"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                closeFeature(id);
-                              }}
-                            />
-                          ) : undefined
-                        }
-                      >
-                        {FEATURE_LABEL[id]}
-                      </WorkspaceTab>
-                    );
-                  })}
-                </WorkspaceTabsList>
+                <div className="min-w-0 flex-1">
+                  <WorkspaceTabsList>
+                    {features.open.map((id) => {
+                      const canClose = features.open.length > 1;
+                      return (
+                        <WorkspaceTab
+                          key={id}
+                          value={id}
+                          closeButton={
+                            canClose ? (
+                              <X
+                                className="h-3 w-3"
+                                aria-hidden="true"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  closeFeature(id);
+                                }}
+                              />
+                            ) : undefined
+                          }
+                        >
+                          {FEATURE_LABEL[id]}
+                        </WorkspaceTab>
+                      );
+                    })}
+                  </WorkspaceTabsList>
+                </div>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      className={cn(
-                        "inline-flex h-7 w-7 items-center justify-center border",
-                        "border-transparent text-muted-foreground hover:border-sidebar-border hover:bg-secondary/40 hover:text-foreground",
-                      )}
-                      aria-label="Options"
-                      title="Options"
-                    >
-                      <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Features</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {(Object.keys(FEATURE_LABEL) as FeatureId[]).map((id) => (
-                      <DropdownMenuCheckboxItem
-                        key={id}
-                        checked={features.open.includes(id)}
-                        disabled={features.open.length === 1 && features.open.includes(id)}
-                        onCheckedChange={(v) => toggleFeature(id, Boolean(v))}
+                <div className="flex items-center gap-1 pb-1">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className={cn(
+                          "inline-flex h-7 w-7 items-center justify-center border",
+                          "border-transparent text-muted-foreground hover:border-sidebar-border hover:bg-secondary/40 hover:text-foreground",
+                        )}
+                        aria-label="Project settings"
+                        title="Project settings"
                       >
-                        {FEATURE_LABEL[id]}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                        {actionInFlight ? (
+                          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                        ) : (
+                          <Settings2 className="h-4 w-4" aria-hidden="true" />
+                        )}
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Project</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {projectStatus === "running" ? (
+                        <DropdownMenuItem disabled={!!actionInFlight} onSelect={() => handleProjectAction("stop")}>
+                          Stop project
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem disabled={!!actionInFlight} onSelect={() => handleProjectAction("start")}>
+                          Start project
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem disabled={!!actionInFlight} onSelect={() => handleProjectAction("restart")}>
+                        Restart project
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        disabled={!!actionInFlight}
+                        className="text-destructive focus:text-destructive"
+                        onSelect={() => {
+                          if (window.confirm(`Delete project "${projectId}"? This removes the local files and stops its containers.`)) {
+                            void handleProjectAction("delete");
+                          }
+                        }}
+                      >
+                        Delete project
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className={cn(
+                          "inline-flex h-7 w-7 items-center justify-center border",
+                          "border-transparent text-muted-foreground hover:border-sidebar-border hover:bg-secondary/40 hover:text-foreground",
+                        )}
+                        aria-label="Options"
+                        title="Options"
+                      >
+                        <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Features</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {(Object.keys(FEATURE_LABEL) as FeatureId[]).map((id) => (
+                        <DropdownMenuCheckboxItem
+                          key={id}
+                          checked={features.open.includes(id)}
+                          disabled={features.open.length === 1 && features.open.includes(id)}
+                          onCheckedChange={(v) => toggleFeature(id, Boolean(v))}
+                        >
+                          {FEATURE_LABEL[id]}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </WorkspaceHeader>
             </WorkspaceTabsRoot>
 
@@ -411,7 +471,7 @@ export function ProjectWorkspace({
                   </ResizablePanel>
                 </ResizablePanelGroup>
               ) : features.active === "Preview" ? (
-                <WorkspacePreviewPanel key={projectId} projectId={projectId} />
+                <WorkspacePreviewPanel key={projectId} projectId={projectId} previewUrl={previewUrl} />
               ) : features.active === "Database" ? (
                 <WorkspaceDatabasePanel />
               ) : (

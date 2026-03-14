@@ -1,0 +1,11 @@
+{
+  "name": "Web App",
+  "description": "Full-stack web application starter with a Next.js frontend, NestJS backend, root Docker Compose, and AWS Terraform infra.",
+  "category": "fullstack",
+  "tags": ["nextjs", "react", "nestjs", "typescript", "tailwind", "docker", "compose", "terraform", "aws"],
+  "bmoTemplateVersion": 1,
+  "icon": "nextjs",
+  "language": "TypeScript",
+  "maintainedBy": "BMO team",
+  "postCreateCommands": ["npm install --prefix frontend", "npm install --prefix backend"]
+}

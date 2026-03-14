@@ -1,0 +1,11 @@
+{
+  "name": "Markdown Notes",
+  "description": "Local notes workspace with live preview.",
+  "category": "content",
+  "tags": ["markdown", "notes"],
+  "bmoTemplateVersion": 1,
+  "icon": "markdown",
+  "language": "Markdown",
+  "maintainedBy": "BMO team",
+  "postCreateCommands": []
+}

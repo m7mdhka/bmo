@@ -1,0 +1,11 @@
+{
+  "name": "Blank Project",
+  "description": "Empty directory. You bring your own setup.",
+  "category": "blank",
+  "tags": [],
+  "bmoTemplateVersion": 1,
+  "icon": "blank",
+  "language": "Any",
+  "maintainedBy": "BMO team",
+  "postCreateCommands": []
+}

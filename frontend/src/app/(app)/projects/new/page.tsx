@@ -1,10 +1,12 @@
 import { NewProjectForm } from "@/components/projects/new-project-form";
+import { loadTemplates } from "@/lib/template-registry";
 
 export const metadata = {
   title: "New project · BMO",
 };
 
-export default function NewProjectPage() {
+export default async function NewProjectPage() {
+  const templates = await loadTemplates();
   return (
     <div className="flex flex-1 flex-col gap-4 font-mono">
       <div className="border-b border-border pb-4">
@@ -16,7 +18,7 @@ export default function NewProjectPage() {
         </h1>
       </div>
 
-      <NewProjectForm />
+      <NewProjectForm templates={templates} />
     </div>
   );
 }

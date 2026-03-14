@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -17,75 +17,48 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import type { TemplateRecord } from "@/lib/template-registry";
+import type { PortCheckResult } from "@/lib/projects";
 
-/* ─── Template definitions ────────────────────────────────────────────── */
-
-type Template = {
-  id: string;
-  name: string;
-  description: string;
+type TemplateCard = Omit<TemplateRecord, "icon"> & {
+  iconKey: string;
   icon: React.ElementType;
-  lang: string;
   color: string;
-  tags: string[];
 };
 
-const TEMPLATES: Template[] = [
-  {
-    id: "nextjs",
-    name: "Next.js App",
-    description: "Full-stack React app with App Router, TypeScript and Tailwind.",
-    icon: Globe,
-    lang: "TypeScript",
-    color: "#89dceb",
-    tags: ["React", "TypeScript", "Tailwind"],
-  },
-  {
-    id: "fastapi",
-    name: "FastAPI Service",
-    description: "Python REST API with auto-generated OpenAPI docs and async support.",
-    icon: Server,
-    lang: "Python",
-    color: "#a6e3a1",
-    tags: ["Python", "REST", "OpenAPI"],
-  },
-  {
-    id: "cli-python",
-    name: "Python CLI",
-    description: "Command-line tool with argument parsing, logging and packaging.",
-    icon: Cpu,
-    lang: "Python",
-    color: "#a6e3a1",
-    tags: ["Python", "CLI"],
-  },
-  {
-    id: "static-site",
-    name: "Static Site",
-    description: "Plain HTML/CSS/JS site with zero dependencies, ready to deploy.",
-    icon: FileCode2,
-    lang: "HTML",
-    color: "#fab387",
-    tags: ["HTML", "CSS", "JS"],
-  },
-  {
-    id: "markdown-notes",
-    name: "Markdown Notes",
-    description: "Local notes workspace with live preview.",
-    icon: FileText,
-    lang: "Markdown",
-    color: "#f9e2af",
-    tags: ["Markdown"],
-  },
-  {
-    id: "blank",
-    name: "Blank project",
-    description: "Empty directory. You bring your own setup.",
-    icon: Package,
-    lang: "Any",
-    color: "#6c7086",
-    tags: [],
-  },
-];
+const ICON_BY_KEY: Record<string, React.ElementType> = {
+  nextjs: Globe,
+  fastapi: Server,
+  python: Cpu,
+  html: FileCode2,
+  markdown: FileText,
+  blank: Package,
+  frontend: Globe,
+  backend: Server,
+  cli: Cpu,
+  content: FileText,
+};
+
+const COLOR_BY_KEY: Record<string, string> = {
+  nextjs: "#89dceb",
+  fastapi: "#a6e3a1",
+  python: "#a6e3a1",
+  html: "#fab387",
+  markdown: "#f9e2af",
+  blank: "#6c7086",
+  frontend: "#89dceb",
+  backend: "#a6e3a1",
+  cli: "#f9e2af",
+  content: "#f9e2af",
+};
 
 const FADE_UP = {
   initial: { opacity: 0, y: 12 },
@@ -96,7 +69,7 @@ const FADE_UP = {
 
 /* ─── Main form ───────────────────────────────────────────────────────── */
 
-export function NewProjectForm() {
+export function NewProjectForm({ templates }: { templates: TemplateRecord[] }) {
   const router = useRouter();
 
   const [step, setStep] = useState<1 | 2>(1);
@@ -106,8 +79,20 @@ export function NewProjectForm() {
   const [path, setPath] = useState("~/bmo-projects/");
   const [creating, setCreating] = useState(false);
   const [nameError, setNameError] = useState("");
+  const [portDialog, setPortDialog] = useState<PortCheckResult | null>(null);
+  const [selectedPorts, setSelectedPorts] = useState({ frontendPort: 3000, backendPort: 4000 });
+  const [countdown, setCountdown] = useState(20);
+  const [dialogError, setDialogError] = useState("");
+  const autoSubmitRef = useRef(false);
 
-  const template = TEMPLATES.find((t) => t.id === selectedTemplate);
+  const cards: TemplateCard[] = templates.map((template) => ({
+    ...template,
+    iconKey: template.icon,
+    icon: ICON_BY_KEY[template.icon] ?? ICON_BY_KEY[template.category] ?? Package,
+    color: COLOR_BY_KEY[template.icon] ?? COLOR_BY_KEY[template.category] ?? "#6c7086",
+  }));
+
+  const template = cards.find((t) => t.id === selectedTemplate);
 
   function handleNameChange(v: string) {
     const slug = v.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
@@ -133,12 +118,98 @@ export function NewProjectForm() {
     return true;
   }
 
+  async function submitProject(frontendPort?: number, backendPort?: number, fromDialog = false) {
+    if (!template) return;
+    try {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          id: name,
+          description,
+          templateId: template.id,
+          templateName: template.name,
+          language: template.language,
+          path,
+          frontendPort,
+          backendPort,
+        }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        if (fromDialog) {
+          setDialogError(data.error ?? "Failed to create project.");
+        } else {
+          setNameError(data.error ?? "Failed to create project.");
+        }
+        setCreating(false);
+        return;
+      }
+      setPortDialog(null);
+      router.push(`/projects/${name}`);
+      router.refresh();
+    } catch {
+      if (fromDialog) setDialogError("Failed to create project.");
+      else setNameError("Failed to create project.");
+      setCreating(false);
+    }
+  }
+
+  const submitProjectEvent = useEffectEvent(async (frontendPort?: number, backendPort?: number, fromDialog = false) => {
+    await submitProject(frontendPort, backendPort, fromDialog);
+  });
+
+  useEffect(() => {
+    if (!portDialog) return;
+    const interval = window.setInterval(() => {
+      setCountdown((current) => {
+        if (current <= 1) {
+          window.clearInterval(interval);
+          return 0;
+        }
+        return current - 1;
+      });
+
+      if (autoSubmitRef.current) return;
+      if (countdown <= 1) {
+        autoSubmitRef.current = true;
+        void submitProjectEvent(portDialog.suggested.frontendPort, portDialog.suggested.backendPort, true);
+      }
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [countdown, portDialog]);
+
   async function handleCreate() {
     if (!validateStep2()) return;
+    if (!template) return;
     setCreating(true);
-    // Simulate async creation — later calls the backend API
-    await new Promise((r) => setTimeout(r, 1200));
-    router.push(`/projects/${name}`);
+    setNameError("");
+    setDialogError("");
+    try {
+      const res = await fetch("/api/projects/ports", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ frontendPort: 3000, backendPort: 4000 }),
+      });
+      const data = (await res.json()) as PortCheckResult & { error?: string };
+      if (!res.ok) {
+        setNameError(data.error ?? "Failed to check ports.");
+        setCreating(false);
+        return;
+      }
+      if (data.conflicts.length > 0) {
+        autoSubmitRef.current = false;
+        setCountdown(20);
+        setSelectedPorts(data.suggested);
+        setPortDialog(data);
+        return;
+      }
+      await submitProject(data.suggested.frontendPort, data.suggested.backendPort);
+    } catch {
+      setNameError("Failed to check ports.");
+      setCreating(false);
+    }
   }
 
   return (
@@ -174,7 +245,7 @@ export function NewProjectForm() {
             </p>
 
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {TEMPLATES.map((tpl, i) => {
+              {cards.map((tpl, i) => {
                 const Icon = tpl.icon;
                 return (
                   <motion.button
@@ -234,7 +305,7 @@ export function NewProjectForm() {
                 aria-hidden
               />
               <span className="text-muted-foreground">Template:</span>
-              <span className="font-semibold text-foreground">{template.name}</span>
+                          <span className="font-semibold text-foreground">{template.name}</span>
               <button
                 onClick={() => { setStep(1); setSelectedTemplate(""); }}
                 className="ml-auto text-[10px] text-muted-foreground transition-colors hover:text-foreground"
@@ -312,6 +383,92 @@ export function NewProjectForm() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <Dialog
+        open={!!portDialog}
+        onOpenChange={(open) => {
+          if (!open && !autoSubmitRef.current) {
+            setPortDialog(null);
+            setCreating(false);
+            setDialogError("");
+          }
+        }}
+      >
+        <DialogContent showCloseButton={!creating}>
+          <DialogHeader>
+            <DialogTitle>Port Conflict</DialogTitle>
+            <DialogDescription>
+              Some default ports are already in use. BMO found free ports for this project and will continue in {countdown}s unless you change them.
+            </DialogDescription>
+          </DialogHeader>
+
+          {portDialog ? (
+            <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Frontend port">
+                  <input
+                    type="number"
+                    value={selectedPorts.frontendPort}
+                    onChange={(e) => setSelectedPorts((current) => ({ ...current, frontendPort: Number(e.target.value) || 0 }))}
+                    className="w-full border border-border bg-card px-3 py-2 font-mono text-xs text-foreground focus:border-primary/60 focus:outline-none"
+                  />
+                </Field>
+                <Field label="Backend port">
+                  <input
+                    type="number"
+                    value={selectedPorts.backendPort}
+                    onChange={(e) => setSelectedPorts((current) => ({ ...current, backendPort: Number(e.target.value) || 0 }))}
+                    className="w-full border border-border bg-card px-3 py-2 font-mono text-xs text-foreground focus:border-primary/60 focus:outline-none"
+                  />
+                </Field>
+              </div>
+
+              <div className="border border-border bg-card px-3 py-2 text-[11px] text-muted-foreground">
+                {portDialog.conflicts.map((conflict) => (
+                  <p key={conflict.key}>
+                    {conflict.key === "frontendPort" ? "Frontend" : "Backend"} port {conflict.desired} is occupied. Suggested: {conflict.suggested}
+                  </p>
+                ))}
+              </div>
+
+              {dialogError ? <p className="text-xs text-destructive">{dialogError}</p> : null}
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={creating}
+              onClick={() => {
+                setPortDialog(null);
+                setCreating(false);
+                setDialogError("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="outline"
+              disabled={creating}
+              onClick={() => {
+                setCountdown(0);
+                void submitProject(selectedPorts.frontendPort, selectedPorts.backendPort, true);
+              }}
+            >
+              Change
+            </Button>
+            <Button
+              disabled={creating}
+              onClick={() => {
+                setCountdown(0);
+                void submitProject(portDialog?.suggested.frontendPort, portDialog?.suggested.backendPort, true);
+              }}
+            >
+              Continue{countdown > 0 ? ` (${countdown})` : ""}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
